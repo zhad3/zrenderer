@@ -1,0 +1,16 @@
+{
+    "authors": [
+        "zhad3"
+    ],
+    "copyright": "Copyright © 2021, zhad3",
+    "description": "Renders a sprite given a set of parameters",
+    "license": "MIT",
+    "name": "zrenderer",
+    "targetPath": "bin",
+    "targetType": "none",
+    "subPackages": [
+        "./cli/",
+        "./server/",
+        "./configgenerator"
+    ]
+}

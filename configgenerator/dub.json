@@ -1,0 +1,11 @@
+{
+	"description": "Generates an example config.",
+	"name": "configgenerator",
+    "targetType": "executable",
+    "targetName": "zrenderer-configgenerator",
+    "targetPath": "../bin",
+    "dependencies": {
+        "zconfig": ">=1.0.0"
+    },
+    "sourceFiles": ["../source/config.d"]
+}

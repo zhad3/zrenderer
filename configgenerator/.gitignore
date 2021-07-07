@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/configgenerator
+configgenerator.so
+configgenerator.dylib
+configgenerator.dll
+configgenerator.a
+configgenerator.lib
+configgenerator-test-*
+*.exe
+*.o
+*.obj
+*.lst

@@ -1,0 +1,3 @@
+[submodule "LuaD"]
+	path = LuaD
+	url = git@github.com:zhad3/LuaD.git

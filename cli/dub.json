@@ -1,0 +1,16 @@
+{
+	"description": "A command line interface for zrenderer.",
+	"name": "cli",
+    "targetName": "zrenderer",
+    "targetPath": "../bin",
+    "targetType": "executable",
+    "dependencies": {
+        "zconfig": "~>1.0.0",
+        "libpng-apng": "~>1.0.1",
+        "luad": ">=1.0.0",
+        "zencoding:windows949": "~>1.0.0"
+    },
+    "sourcePaths": ["../source/"],
+    "importPaths": ["../source/"],
+    "mainSourceFile": "source/zrenderer/cli/package.d"
+}

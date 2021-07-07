@@ -1,0 +1,17 @@
+{
+	"description": "REST server interface for zrenderer.",
+	"name": "server",
+    "targetName": "zrenderer-server",
+    "targetPath": "../bin",
+    "targetType": "executable",
+    "dependencies": {
+        "zconfig": "~>1.0.0",
+        "libpng": "==1.6.17",
+        "luad": ">=1.0.0",
+        "zencoding:windows949": "~>1.0.0",
+        "vibe-d:web": "~>0.9.3"
+    },
+    "sourcePaths": ["../source/", "./source/"],
+    "importPaths": ["../source/", "./source/"],
+    "mainSourceFile": "source/zrenderer/server/package.d"
+}
