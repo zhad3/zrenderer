@@ -6,11 +6,12 @@
     "targetType": "executable",
     "dependencies": {
         "zconfig": "~>1.0.0",
-        "libpng": "==1.6.17",
+        "libpng-apng": "~>1.0.1",
         "luad": ">=1.0.0",
         "zencoding:windows949": "~>1.0.0",
         "vibe-d:web": "~>0.9.3"
     },
+    "versions": ["VibeDisableCommandLineParsing"],
     "sourcePaths": ["../source/", "./source/"],
     "importPaths": ["../source/", "./source/"],
     "mainSourceFile": "source/zrenderer/server/package.d"

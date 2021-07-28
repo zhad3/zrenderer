@@ -6,7 +6,7 @@
 		"diet-ng": "1.7.5",
 		"eventcore": "0.9.14",
 		"libasync": "0.8.6",
-		"libpng": {"path":"../../libpng/"},
+		"libpng-apng": "1.0.2+apng.1.6.37",
 		"luad": {"path":"../LuaD/"},
 		"memutils": "1.0.4",
 		"mir-linux-kernel": "1.0.1",
@@ -14,6 +14,8 @@
 		"stdx-allocator": "2.77.5",
 		"taggedalgebraic": "0.11.22",
 		"vibe-core": "1.18.0",
-		"vibe-d": "0.9.3"
+		"vibe-d": "0.9.3",
+		"zconfig": "1.0.0",
+		"zencoding": "1.0.0"
 	}
 }

@@ -6,7 +6,7 @@
     "targetType": "executable",
     "dependencies": {
         "zconfig": "~>1.0.0",
-        "libpng-apng": "~>1.0.1",
+        "libpng-apng": "~>1.0.2",
         "luad": ">=1.0.0",
         "zencoding:windows949": "~>1.0.0"
     },

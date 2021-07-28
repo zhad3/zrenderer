@@ -1,7 +1,7 @@
 {
 	"fileVersion": 1,
 	"versions": {
-		"libpng-apng": "1.0.1+apng.1.6.37",
+		"libpng-apng": "1.0.2+apng.1.6.37",
 		"luad": {"path":"../LuaD/"},
 		"zconfig": "1.0.0",
 		"zencoding": "1.0.0"
