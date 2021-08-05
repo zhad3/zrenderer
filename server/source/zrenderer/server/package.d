@@ -50,23 +50,6 @@ int main(string[] args)
 
     createOutputDirectory(config.outdir);
 
-    import luad.state : LuaState;
-
-    LuaState L = new LuaState;
-    L.openLibs();
-
-    import resource : ResourceManager;
-
-    ResourceManager resManager = new ResourceManager(config.resourcepath);
-
-    import luamanager : loadRequiredLuaFiles;
-
-    loadRequiredLuaFiles(L, resManager);
-
-    import resolver : Resolver;
-
-    Resolver resolve = new Resolver(L);
-
     if (config.logfile.length > 0)
     {
         import vibe.core.log : registerLogger, FileLogger;
@@ -75,14 +58,28 @@ int main(string[] args)
     }
 
     auto router = new URLRouter;
-    router.registerRestInterface(new ApiImpl(config, L, resManager, resolve));
+    router.registerRestInterface(new ApiImpl(config));
 
     auto settings = new HTTPServerSettings;
     settings.bindAddresses = config.hosts;
     settings.port = config.port;
     auto listener = listenHTTP(settings, router);
 
-    runApplication();
+    import std.stdio : writeln;
+    import vibe.core.args : finalizeCommandLineOptions;
+
+    finalizeCommandLineOptions(null);
+
+    try
+    {
+        runApplication();
+    }
+    catch (Throwable e)
+    {
+        import vibe.core.log : logError;
+
+        logError("%s in %s:%d", e.msg, e.file, e.line);
+    }
 
     listener.stopListening();
 
