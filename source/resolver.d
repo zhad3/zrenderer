@@ -1,5 +1,6 @@
 module resolver;
 
+import std.conv : to;
 import luad.state : LuaState;
 import config : Gender, toString;
 
@@ -166,8 +167,6 @@ class Resolver
 
     string playerHeadSprite(uint jobid, uint headid, Gender gender)
     {
-        import std.conv : to;
-
         string path;
         if (isDoram(jobid))
         {
@@ -232,8 +231,6 @@ class Resolver
         }
         if (jobid < this._jobNamesPalette.length)
         {
-            import std.conv : to;
-
             if (doram)
             {
                 return buildPath("도람족",
@@ -260,8 +257,6 @@ class Resolver
         }
 
         bool doram = isDoram(jobid);
-
-        import std.conv : to;
 
         if (doram)
         {
@@ -304,7 +299,6 @@ class Resolver
         {
             import std.path : dirSeparator;
             import std.algorithm.iteration : substitute;
-            import std.conv : to;
 
             auto jobWeaponName = this._jobNamesWeapon[jobid].substitute("\\", dirSeparator)
                 .to!string;
@@ -362,8 +356,6 @@ class Resolver
         }
         else
         {
-            import std.conv : to;
-
             return buildPath("방패",
                     jobname,
                     jobname ~ "_" ~ gender.toString ~ "_" ~ shieldid.to!string ~ "_방패");

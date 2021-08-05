@@ -7,7 +7,7 @@ class ResourceManager
 {
     private string _resourcePath;
 
-    this(string resourcePath)
+    this(string resourcePath) pure nothrow @safe
     {
         this._resourcePath = resourcePath;
     }

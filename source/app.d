@@ -72,7 +72,7 @@ bool isJobArgValid(string[] jobids) pure @safe
     return isValid;
 }
 
-string[] run(Config config, LogFunc log, LuaState L = null,
+string[] run(immutable Config config, LogFunc log, LuaState L = null,
         ResourceManager resManager = null, Resolver resolve = null)
 {
     // Nothing to draw
@@ -122,7 +122,7 @@ string[] run(Config config, LogFunc log, LuaState L = null,
     return process(config, log, L, resManager, resolve);
 }
 
-string[] process(Config config, LogFunc log, LuaState L,
+string[] process(immutable Config config, LogFunc log, LuaState L,
         ResourceManager resManager, Resolver resolve)
 {
     string[] filenames;
@@ -290,7 +290,7 @@ string[] process(Config config, LogFunc log, LuaState L,
     return filenames;
 }
 
-Sprite[] processNonPlayer(uint jobid, LogFunc log, Config config, Resolver resolve,
+Sprite[] processNonPlayer(uint jobid, LogFunc log, immutable Config config, Resolver resolve,
         ResourceManager resManager, ref LuaState L)
 {
     const jobspritepath = resolve.nonPlayerSprite(jobid);
@@ -349,7 +349,7 @@ Sprite[] processNonPlayer(uint jobid, LogFunc log, Config config, Resolver resol
     return sprites;
 }
 
-Sprite[] processPlayer(uint jobid, LogFunc log, Config config, Resolver resolve,
+Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolver resolve,
         ResourceManager resManager, ref LuaState L)
 {
     import std.exception : ErrnoException;
