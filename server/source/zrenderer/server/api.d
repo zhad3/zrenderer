@@ -31,23 +31,7 @@ class ApiImpl : ApiV1
         import zrenderer.server.worker : renderWorker;
         import std.typecons : Nullable;
 
-        Config mergedConfig = defaultConfig;
-
-        static foreach (memberName; __traits(allMembers, RenderRequestData))
-        {
-            static if (__traits(hasMember, mergedConfig, memberName))
-            {
-                static if (__traits(compiles, (__traits(getMember, data, memberName)).isNull)) {
-                    if (!(__traits(getMember, data, memberName)).isNull) {
-                        __traits(getMember, mergedConfig, memberName) = __traits(getMember, data, memberName).get();
-                    }
-                }
-                else
-                {
-                    __traits(getMember, mergedConfig, memberName) = __traits(getMember, data, memberName);
-                }
-            }
-        }
+        const(Config) mergedConfig = mergeConfig(defaultConfig, data);
 
         import app : isJobArgValid;
 
@@ -72,9 +56,7 @@ class ApiImpl : ApiV1
         {
             renderingSucceeded = receiveTimeout(5.seconds,
                     (immutable(string)[] filenames) {
-                        response.renders = filenames;
-                        response.message = string.init;
-                        response.status = 0;
+                        response.output = filenames;
                     }
             );
         }
@@ -92,3 +74,27 @@ class ApiImpl : ApiV1
     }
 }
 
+const(Config) mergeConfig(Config defaultConfig, RenderRequestData data) pure nothrow @safe
+{
+    Config mergedConfig = defaultConfig;
+
+    static foreach (memberName; __traits(allMembers, RenderRequestData))
+    {
+        static if (__traits(hasMember, mergedConfig, memberName))
+        {
+            static if (__traits(compiles, (__traits(getMember, data, memberName)).isNull))
+            {
+                if (!(__traits(getMember, data, memberName)).isNull)
+                {
+                    __traits(getMember, mergedConfig, memberName) = __traits(getMember, data, memberName).get();
+                }
+            }
+            else
+            {
+                __traits(getMember, mergedConfig, memberName) = __traits(getMember, data, memberName);
+            }
+        }
+    }
+
+    return mergedConfig;
+}

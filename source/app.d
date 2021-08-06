@@ -17,7 +17,7 @@ void createOutputDirectory(string outputDirectory) @safe
     }
 }
 
-bool isJobArgValid(string[] jobids) pure @safe
+bool isJobArgValid(const(string)[] jobids) pure @safe
 {
     bool isValid = true;
 
@@ -30,7 +30,12 @@ bool isJobArgValid(string[] jobids) pure @safe
 
         import std.conv : to, ConvException;
 
-        if (rangeIndex < 0)
+        if (rangeIndex == 0)
+        {
+            isValid = false;
+            break;
+        }
+        else if (rangeIndex < 0)
         {
             try
             {
