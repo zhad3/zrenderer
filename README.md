@@ -55,7 +55,60 @@ Same as CLI
 ```
 The server will listen on the _hosts_, bind to _port_ and write its logs to _logfile_.
 ### API
-TODO
+The server will provide one API endpoint:
+
+| Endpoint | Method | Content-Type |
+| --- | --- | --- |
+| /render | POST | application/json |
+
+#### Request
+The endpoint accepts a request in json format with the following attributes:
+
+| Attribute | Required | Type |
+| --- | --- | --- |
+| job | Yes | string array |
+| action | No | number >= 0 |
+| frame | No | number |
+| gender | No | string |
+| head | No | number >= 0 |
+| garment | No | number >= 0 |
+| weapon | No | number >= 0 |
+| shield | No | number >= 0 |
+| bodypalette | No | number |
+| headpalette | No | number |
+| enableshadow | No | boolean |
+| headgear | No | number > 0 array |
+
+Note that the attribute names are identical to the options one and so is their function and meaning as well as defaults.
+
+#### Response
+The following responses may be returned by the server
+
+| HTTP Status | Content-Type | Body | Description |
+| --- | --- | --- | --- |
+| 200 | application/json | `{"output": ["0_1.png", "1_2.png", ...]}` | JSON Object with one attribute called "output". The output attribute contains an array of filenames of the generated sprites. |
+| 400 | text/plain | \<error message> | Returned when the request is invalid. |
+| 500 | text/plain | \<error message> | Returned when an error occurred. |
+
+#### Example
+
+```
+POST /render
+{
+    "job": ["1001", "1005"],
+    "action": 16,
+    "frame": 2
+}
+```
+```
+200 OK
+{
+    "output": [
+        "output/1001_0.png",
+        "output/1005_0.png"
+    ]
+}
+```
 
 ## Requirements
 TODO
