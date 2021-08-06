@@ -92,20 +92,20 @@ The following responses may be returned by the server
 
 #### Example
 
-```
-POST /render
+`POST /render`
+```json
 {
     "job": ["1001", "1005"],
     "action": 16,
     "frame": 2
 }
 ```
-```
-200 OK
+`200 OK`
+```json
 {
     "output": [
-        "output/1001_0.png",
-        "output/1005_0.png"
+        "output/1001_16_2.png",
+        "output/1005_16_2.png"
     ]
 }
 ```
