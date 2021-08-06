@@ -53,7 +53,7 @@ int main(string[] args)
         writeln(msg);
     }
 
-    run(config, &consoleLogger);
+    run(cast(immutable) config, &consoleLogger);
 
     return 0;
 }

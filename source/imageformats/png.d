@@ -75,7 +75,7 @@ void saveToApngFile(const scope RawImage[] images, string filename, ushort delay
             png_row_pointers[rowIndex] = cast(png_bytep) &image.pixels[rowIndex * image.width];
         }
 
-        png_write_frame_head(png_ptr, png_info_ptr, null, image.width, image.height, 0, 0, delay, 100,
+        png_write_frame_head(png_ptr, png_info_ptr, null, image.width, image.height, 0, 0, delay, 1000,
                 PNG_DISPOSE_OP_NONE, PNG_BLEND_OP_SOURCE);
         png_write_image(png_ptr, cast(ubyte**) png_row_pointers);
         png_write_frame_tail(png_ptr, png_info_ptr);

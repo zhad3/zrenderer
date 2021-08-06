@@ -139,6 +139,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
     {
         uint startJob;
         uint endJob;
+        float animationInterval = 12;
 
         import std.algorithm.searching : countUntil;
         import std.string : representation;
@@ -166,11 +167,11 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
 
             if (isPlayer(jobid))
             {
-                sprites = processPlayer(jobid, log, config, resolve, resManager, L);
+                sprites = processPlayer(jobid, log, config, resolve, resManager, L, animationInterval);
             }
             else
             {
-                sprites = processNonPlayer(jobid, log, config, resolve, resManager, L);
+                sprites = processNonPlayer(jobid, log, config, resolve, resManager, L, animationInterval);
             }
 
             const playerAction = intToPlayerAction(config.action);
@@ -192,20 +193,6 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
 
                 sprites ~= shadowsprite;
             }
-
-            //if (isBaby(jobid))
-            //{
-            //    foreach (ref sprite; sprites)
-            //    {
-            //        if (sprite.type == SpriteType.shadow)
-            //        {
-            //            sprite.applyScaling(0, 0, 0.75);
-            //            continue;
-            //        }
-
-            //        sprite.applyScaling(config.action, config.frame < 0 ? uint.max : config.frame, 0.75);
-            //    }
-            //}
 
             import std.algorithm : sort;
 
@@ -265,7 +252,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
 
                     auto filename = buildPath(config.outdir, format("%d_%d.png", jobid, config.action));
 
-                    saveToApngFile(images, filename, 12);
+                    saveToApngFile(images, filename, (25 * animationInterval).to!ushort);
 
                     filenames ~= filename;
                 }
@@ -296,7 +283,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
 }
 
 Sprite[] processNonPlayer(uint jobid, LogFunc log, immutable Config config, Resolver resolve,
-        ResourceManager resManager, ref LuaState L)
+        ResourceManager resManager, ref LuaState L, out float interval)
 {
     const jobspritepath = resolve.nonPlayerSprite(jobid);
     if (jobspritepath.length == 0)
@@ -329,6 +316,8 @@ Sprite[] processNonPlayer(uint jobid, LogFunc log, immutable Config config, Reso
 
     auto sprites = [jobsprite];
 
+    interval = jobsprite.act.action(config.action).interval;
+
     if (isMercenary(jobid))
     {
         // Attach head to mercenary. Gender is derived from the job id
@@ -355,7 +344,7 @@ Sprite[] processNonPlayer(uint jobid, LogFunc log, immutable Config config, Reso
 }
 
 Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolver resolve,
-        ResourceManager resManager, ref LuaState L)
+        ResourceManager resManager, ref LuaState L, out float interval)
 {
     import std.exception : ErrnoException;
     import resource.base : ResourceException;
@@ -386,6 +375,7 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
         return [];
     }
 
+    interval = bodysprite.act.action(config.action).interval;
 
     Sprite[] sprites;
     sprites.reserve(10);
