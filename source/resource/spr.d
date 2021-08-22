@@ -272,15 +272,20 @@ class SprResource : BaseResource
         {
             for (auto p = 0; p < img.pixels.length; ++p)
             {
+                // RGBA images are stored with a negative y-axis
+                const x = p % img.width;
+                const y = (p / img.width) + 1;
+                const destPixel = img.pixels.length - (y * img.width) + x;
+
                 version (BigEndian)
                 {
-                    img.pixels[p] = cast(Color) this._buffer.peekLE!uint(&offset);
+                    img.pixels[destPixel] = cast(Color) this._buffer.peekLE!uint(&offset);
                 }
                 else
                 {
                     import std.bitmanip : peek;
 
-                    img.pixels[p] = cast(Color) this._buffer.peek!uint(&offset);
+                    img.pixels[destPixel] = cast(Color) this._buffer.peek!uint(&offset);
                 }
             }
         }
