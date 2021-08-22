@@ -95,7 +95,7 @@ struct Config
     @Desc("Direction in which the head should turn. This is only applied to player sprites and only to the stand " ~
             "and sit action. Possible values are: straight, left, right or all. If 'all' is set then this direction " ~
             "system is ignored and all frames are interpreted like any other one.")
-    HeadDirection headdir = HeadDirection.straight;
+    HeadDirection headdir = HeadDirection.all;
 
     @Desc("Draw shadow underneath the sprite.")
     bool enableShadow = true;

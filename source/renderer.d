@@ -21,10 +21,6 @@ void drawSpriteOnImage(ref RawImage destImage, const scope DrawObject spriteObj,
 
     const pixelCount = transformedWidth * transformedHeight;
 
-    //const frameObj = spriteObj.parent;
-    //const frameWidth = frameObj.boundingBox.width;
-    //const frameHeight = frameObj.boundingBox.height;
-
     for (auto i = 0; i < pixelCount; ++i)
     {
         uint transformedX = (i % transformedWidth);
@@ -65,7 +61,6 @@ void drawSpriteOnImage(ref RawImage destImage, const scope DrawObject spriteObj,
         if (sourcePoint.x < 0 || sourcePoint.x >= sourceImage.width ||
                 sourcePoint.y < 0 || sourcePoint.y >= sourceImage.height)
         {
-            //*outputPixel = alphaBlend(*outputPixel, Color(0xffff00ff));
             continue;
         }
 
@@ -79,8 +74,6 @@ void drawSpriteOnImage(ref RawImage destImage, const scope DrawObject spriteObj,
 
         const tintedPixel = tintPixel(sourcePixel, spriteObj.tint);
 
-        //const outputIndex = cast(ulong)(destPoint.x + destPoint.y * destImage.width);
-        //auto outputPixel = &destImage.pixels[outputIndex];
         *outputPixel = alphaBlend(*outputPixel, tintedPixel);
     }
 }
@@ -188,10 +181,6 @@ RawImage[] drawPlayer(scope Sprite[] sprites, uint action, uint frame, sortDeleg
 
         totalBoundingBox.updateBounds(drawobject.boundingBox);
 
-        //import std.stdio : writefln;
-        //writefln("Sprite: %s, width: %d, height: %d", sprite.filename, drawobject.boundingBox.width, drawobject.boundingBox.height);
-        //writefln("Total width: %d, total height: %d", totalBoundingBox.width, totalBoundingBox.height);
-
         drawobjects ~= drawobject;
     }
 
@@ -223,15 +212,9 @@ RawImage[] drawPlayer(scope Sprite[] sprites, uint action, uint frame, sortDeleg
             sortDg(sortIndex, cast(uint) i);
         }
 
-        //import std.stdio : writeln;
-
-        //writeln("== Frame ", i, " ==");
-
-        //foreach (d, drawobject; drawobjects)
         for (auto d = 0; d < sortIndex.length; ++d)
         {
             import std.conv : to;
-            //writeln(sprites[sortIndex[d]].type.to!string);
 
             auto drawobject = drawobjects[sortIndex[d]];
 
@@ -263,11 +246,11 @@ RawImage[] drawPlayer(scope Sprite[] sprites, uint action, uint frame, sortDeleg
                     const frameCountOfCurrentSprite = sprite.act.frames(action).length;
                     if (sprite.headdir != HeadDirection.all)
                     {
-                        frameoffset = sprite.headdir.toInt() * frameCountOfCurrentSprite;
+                        frameoffset = sprite.headdir.toInt() * frameCountOfCurrentSprite / 3;
                     }
                     else if (sprite.type == SpriteType.playerhead)
                     {
-                        frameindex = i / maxframes / 3;
+                        frameindex = i / (maxframes / 3);
                     }
                     else if (frameCountOfCurrentSprite >= 3)
                     {
@@ -289,7 +272,7 @@ RawImage[] drawPlayer(scope Sprite[] sprites, uint action, uint frame, sortDeleg
             {
                 if (drawobject.children.length == 3 && maxframes >= 3)
                 {
-                    frameindex = i / (maxframes / 3);
+                    frameindex = i / (maxframes / 3) % drawobject.children.length;
                 }
                 else
                 {

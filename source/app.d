@@ -185,7 +185,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
                 import luamanager : shadowfactor;
 
                 float scale = shadowfactor(jobid, L);
-                if (scale > -float.epsilon)
+                if (scale >= -float.epsilon && scale <= float.epsilon)
                 {
                     shadowsprite.modifyActSprite!"xScale"(0, 0, 0, scale);
                     shadowsprite.modifyActSprite!"yScale"(0, 0, 0, scale);
@@ -390,7 +390,7 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
         headsprite = resManager.getSprite(headspritepath, SpriteType.playerhead);
         headsprite.zIndex = zIndexForSprite(headsprite, direction);
         headsprite.parent(bodysprite);
-        headsprite.headdir = config.frame < 0 ? HeadDirection.all : config.headdir;
+        headsprite.headdir = config.headdir;
         sprites ~= headsprite;
     }
     catch (ResourceException err)
@@ -458,7 +458,7 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
                     headgearsprite.typeOrder = h;
                     headgearsprite.zIndex = zIndexForSprite(headgearsprite, direction);
                     headgearsprite.parent(bodysprite);
-                    headgearsprite.headdir = config.frame < 0 ? HeadDirection.all : config.headdir;
+                    headgearsprite.headdir = config.headdir;
                     sprites ~= headgearsprite;
                 }
                 catch (ResourceException err)
