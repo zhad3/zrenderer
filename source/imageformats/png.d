@@ -6,8 +6,17 @@ import libpng.png;
 
 void saveToPngFile(const scope RawImage image, string filename)
 {
-
     auto file = File(filename, "wb");
+    if (!file.tryLock())
+    {
+        file.close();
+        return;
+    }
+    scope (exit)
+    {
+        file.unlock();
+        file.close();
+    }
 
     png_bytep[] png_row_pointers = new png_bytep[image.height];
 
@@ -43,6 +52,16 @@ void saveToPngFile(const scope RawImage image, string filename)
 void saveToApngFile(const scope RawImage[] images, string filename, ushort delay)
 {
     auto file = File(filename, "wb");
+    if (!file.tryLock())
+    {
+        file.close();
+        return;
+    }
+    scope (exit)
+    {
+        file.unlock();
+        file.close();
+    }
 
     png_bytep[] png_row_pointers = new png_bytep[images[0].height];
 
