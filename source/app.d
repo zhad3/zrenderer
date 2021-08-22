@@ -89,6 +89,7 @@ string[] run(immutable Config config, LogFunc log, LuaState L = null,
     if (L is null)
     {
         import luad.error : LuaErrorException;
+
         try
         {
             L = new LuaState;
@@ -140,6 +141,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
         uint startJob;
         uint endJob;
         float animationInterval = 12;
+        int requestFrame = config.frame;
 
         import std.algorithm.searching : countUntil;
         import std.string : representation;
@@ -167,7 +169,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
 
             if (isPlayer(jobid))
             {
-                sprites = processPlayer(jobid, log, config, resolve, resManager, L, animationInterval);
+                sprites = processPlayer(jobid, log, config, resolve, resManager, L, animationInterval, requestFrame);
             }
             else
             {
@@ -209,7 +211,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
 
                 sprites.filter!(a => a.type == SpriteType.garment)
                     .each!(s => s.zIndex = zIndexForGarmentSprite(jobid, config.garment, config.action,
-                                frame, config.gender, direction, L));
+                            frame, config.gender, direction, L));
 
                 import std.algorithm.sorting : makeIndex;
 
@@ -217,8 +219,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
             }
 
             RawImage[] images = drawPlayer(sprites, config.action,
-                    (config.frame < 0) ? uint.max : config.frame, &sortIndexDelegate);
-
+                    (requestFrame < 0) ? uint.max : requestFrame, &sortIndexDelegate);
 
             if (isBaby(jobid))
             {
@@ -226,7 +227,6 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
 
                 images.applyBabyScaling(0.75);
             }
-
 
             if (images.length > 0)
             {
@@ -258,7 +258,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
                 }
                 else
                 {
-                    if (config.frame < 0)
+                    if (requestFrame < 0)
                     {
                         auto filename = buildPath(config.outdir, format("%d_%d.png", jobid, config.action));
 
@@ -269,7 +269,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
                     else
                     {
                         auto filename = buildPath(config.outdir,
-                                format("%d_%d_%d.png", jobid, config.action, config.frame));
+                                format("%d_%d_%d.png", jobid, config.action, requestFrame));
                         saveToPngFile(images[0], filename);
 
                         filenames ~= filename;
@@ -344,7 +344,7 @@ Sprite[] processNonPlayer(uint jobid, LogFunc log, immutable Config config, Reso
 }
 
 Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolver resolve,
-        ResourceManager resManager, ref LuaState L, out float interval)
+        ResourceManager resManager, ref LuaState L, out float interval, ref int requestFrame)
 {
     import std.exception : ErrnoException;
     import resource.base : ResourceException;
@@ -352,6 +352,10 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
     import std.stdio : writeln;
 
     uint direction = config.action % 8;
+
+    const playerAction = intToPlayerAction(config.action);
+    bool overwriteFrame = config.headdir != HeadDirection.all && config.frame < 0 &&
+        (playerAction == PlayerAction.stand || playerAction == PlayerAction.sit);
 
     const bodyspritepath = resolve.playerBodySprite(jobid, config.gender);
     if (bodyspritepath.length == 0)
@@ -460,6 +464,12 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
                     headgearsprite.parent(bodysprite);
                     headgearsprite.headdir = config.headdir;
                     sprites ~= headgearsprite;
+
+                    // Set to all frames if headgear has more frames
+                    if (headgearsprite.act.frames(config.action).length > 3)
+                    {
+                        overwriteFrame = false;
+                    }
                 }
                 catch (ResourceException err)
                 {
@@ -536,7 +546,14 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
         }
     }
 
-    if (config.frame < 0)
+    if (overwriteFrame)
+    {
+        import config : toInt;
+
+        requestFrame = config.headdir.toInt();
+    }
+
+    if (requestFrame < 0)
     {
         foreach (sprite; sprites)
         {
@@ -562,26 +579,25 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
         {
             if (sprite.type == SpriteType.playerbody)
             {
-                bodysprite.loadImagesOfFrame(config.action, config.frame,
+                bodysprite.loadImagesOfFrame(config.action, requestFrame,
                         bodypalette !is null && bodypalette.usable ? bodypalette.palette : Palette.init);
             }
             else if (sprite.type == SpriteType.playerhead)
             {
-                headsprite.loadImagesOfFrame(config.action, config.frame,
+                headsprite.loadImagesOfFrame(config.action, requestFrame,
                         headpalette !is null && headpalette.usable ? headpalette.palette : Palette.init);
             }
             else if (sprite.type == SpriteType.accessory && sprite.act.frames(config.action).length > 3)
             {
-                    sprite.loadImagesOfFrame(config.action,
-                            cast(uint) ((config.frame % 3) * sprite.act.frames(config.action).length / 3));
+                sprite.loadImagesOfFrame(config.action,
+                        cast(uint)((requestFrame % 3) * sprite.act.frames(config.action).length / 3));
             }
             else
             {
-                    sprite.loadImagesOfFrame(config.action, config.frame);
+                sprite.loadImagesOfFrame(config.action, requestFrame);
             }
         }
     }
 
     return sprites;
 }
-
