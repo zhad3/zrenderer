@@ -4,37 +4,37 @@ import std.conv : to;
 import luad.state : LuaState;
 import config : Gender, toString;
 
-bool isNPC(uint jobid)
+bool isNPC(uint jobid) pure nothrow @safe @nogc
 {
     return (jobid >= 45 && jobid < 1000) || (jobid >= 10_001 && jobid < 19_999);
 }
 
-bool isMercenary(uint jobid)
+bool isMercenary(uint jobid) pure nothrow @safe @nogc
 {
     return jobid - 6017 <= 29;
 }
 
-bool isHomunculus(uint jobid)
+bool isHomunculus(uint jobid) pure nothrow @safe @nogc
 {
     return jobid - 6001 <= 51;
 }
 
-bool isMonster(uint jobid)
+bool isMonster(uint jobid) pure nothrow @safe @nogc
 {
     return jobid >= 1001 && jobid < 3999;
 }
 
-bool isPlayer(uint jobid)
+bool isPlayer(uint jobid) pure nothrow @safe @nogc
 {
     return jobid < 45 || (jobid - 4001 < 280);
 }
 
-bool isDoram(uint jobid)
+bool isDoram(uint jobid) pure nothrow @safe @nogc
 {
     return jobid - 4217 <= 4;
 }
 
-bool isBaby(uint jobid)
+bool isBaby(uint jobid) pure nothrow @safe @nogc
 {
     if ((jobid >= 4023 && jobid <= 4045) || (jobid >= 4096 && jobid <= 4112) ||
             (jobid >= 4158 && jobid <= 4182) || jobid == 4191 || jobid == 4193 ||

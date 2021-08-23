@@ -176,9 +176,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
                 sprites = processNonPlayer(jobid, log, config, resolve, resManager, L, animationInterval);
             }
 
-            const playerAction = intToPlayerAction(config.action);
-            if (config.enableShadow && (!isPlayer(jobid) ||
-                    (playerAction != PlayerAction.sit && playerAction != PlayerAction.dead)))
+            if (shouldDrawShadow(config.enableShadow, jobid, config.action))
             {
                 auto shadowsprite = resManager.getSprite("shadow", SpriteType.shadow);
                 shadowsprite.zIndex = -1;
@@ -600,4 +598,33 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
     }
 
     return sprites;
+}
+
+bool shouldDrawShadow(bool enableShadow, uint jobid, uint action) pure nothrow @safe @nogc
+{
+    if (!enableShadow)
+    {
+        return false;
+    }
+
+    if (isPlayer(jobid))
+    {
+        const playerAction = intToPlayerAction(action);
+
+        if (playerAction == PlayerAction.sit || playerAction == PlayerAction.dead)
+        {
+            return false;
+        }
+    }
+    else if (!isNPC(jobid))
+    {
+        const monsterAction = intToMonsterAction(action);
+
+        if (monsterAction == MonsterAction.dead)
+        {
+            return false;
+        }
+    }
+
+    return true;
 }

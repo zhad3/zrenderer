@@ -37,6 +37,16 @@ enum PlayerAction : uint
     invalid     = 255
 }
 
+enum MonsterAction : uint
+{
+    stand       = 0,
+    move        = 8,
+    attack      = 16,
+    damage      = 24,
+    dead        = 32,
+    invalid     = 255
+}
+
 PlayerAction intToPlayerAction(uint action) pure nothrow @safe @nogc
 {
     const direction = action % 8;
@@ -48,6 +58,20 @@ PlayerAction intToPlayerAction(uint action) pure nothrow @safe @nogc
     else
     {
         return cast(PlayerAction) action;
+    }
+}
+
+MonsterAction intToMonsterAction(uint action) pure nothrow @safe @nogc
+{
+    const direction = action % 8;
+    action -= direction;
+    if (action > MonsterAction.dead)
+    {
+        return MonsterAction.invalid;
+    }
+    else
+    {
+        return cast(MonsterAction) action;
     }
 }
 
