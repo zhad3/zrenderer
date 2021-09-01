@@ -173,7 +173,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
             }
             else
             {
-                sprites = processNonPlayer(jobid, log, config, resolve, resManager, L, animationInterval);
+                sprites = processNonPlayer(jobid, log, config, resolve, resManager, L, animationInterval, requestFrame);
             }
 
             if (shouldDrawShadow(config.enableShadow, jobid, config.action))
@@ -281,8 +281,10 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
 }
 
 Sprite[] processNonPlayer(uint jobid, LogFunc log, immutable Config config, Resolver resolve,
-        ResourceManager resManager, ref LuaState L, out float interval)
+        ResourceManager resManager, ref LuaState L, out float interval, ref int requestFrame)
 {
+    bool overwriteFrame = false;
+
     const jobspritepath = resolve.nonPlayerSprite(jobid);
     if (jobspritepath.length == 0)
     {
@@ -296,20 +298,12 @@ Sprite[] processNonPlayer(uint jobid, LogFunc log, immutable Config config, Reso
     try
     {
         jobsprite = resManager.getSprite(jobspritepath);
+        jobsprite.zIndex = 0;
     }
     catch (ResourceException err)
     {
         log(err.msg);
         return [];
-    }
-
-    if (config.frame < 0)
-    {
-        jobsprite.loadImagesOfAction(config.action);
-    }
-    else
-    {
-        jobsprite.loadImagesOfFrame(config.action, config.frame);
     }
 
     auto sprites = [jobsprite];
@@ -318,12 +312,18 @@ Sprite[] processNonPlayer(uint jobid, LogFunc log, immutable Config config, Reso
 
     if (isMercenary(jobid))
     {
-        // Attach head to mercenary. Gender is derived from the job id
+        const playerAction = intToPlayerAction(config.action);
+        overwriteFrame = config.headdir != HeadDirection.all && config.frame < 0 &&
+            (playerAction == PlayerAction.stand || playerAction == PlayerAction.sit);
+
         const gender = (jobid - 6017) <= 9 ? Gender.female : Gender.male;
+
+        // Attach head to mercenary. Gender is derived from the job id
         auto headspritepath = resolve.playerHeadSprite(jobid, config.head, gender);
         if (headspritepath.length > 0)
         {
             auto headsprite = resManager.getSprite(headspritepath);
+            headsprite.zIndex = 1;
             headsprite.parent(jobsprite);
 
             if (config.frame < 0)
@@ -335,6 +335,92 @@ Sprite[] processNonPlayer(uint jobid, LogFunc log, immutable Config config, Reso
                 headsprite.loadImagesOfFrame(config.action, config.frame);
             }
             sprites ~= headsprite;
+        }
+
+        // Attach weapon
+        if (config.weapon > 0)
+        {
+            auto weaponspritepath = resolve.weaponSprite(jobid, 1, gender);
+            if (weaponspritepath.length > 0)
+            {
+                try
+                {
+                    auto weaponsprite = resManager.getSprite(weaponspritepath, SpriteType.weapon);
+                    weaponsprite.typeOrder = 1;
+                    weaponsprite.zIndex = 2;
+                    sprites ~= weaponsprite;
+
+                    if (jobid < 6017 || jobid > 6026)
+                    {
+                        // Weapon Slash only for lancer & swordsman
+                        auto weaponslashsprite = resManager.getSprite(weaponspritepath ~ "_검광", SpriteType.weapon);
+                        weaponslashsprite.typeOrder = 0;
+                        weaponslashsprite.zIndex = 3;
+                        sprites ~= weaponslashsprite;
+                    }
+                }
+                catch (ResourceException err)
+                {
+                    log(err.msg);
+                }
+            }
+        }
+
+        if (config.headgear.length > 0)
+        {
+            import std.algorithm : min;
+
+            // Mercenaries can have 4 headgears
+            const numHeadgears = min(4, config.headgear.length);
+
+            for (auto h = 0; h < numHeadgears; ++h)
+            {
+                if (config.headgear[h] > 0)
+                {
+                    const headgearspritepath = resolve.headgearSprite(config.headgear[h], gender);
+                    try
+                    {
+                        auto headgearsprite = resManager.getSprite(headgearspritepath, SpriteType.accessory);
+                        headgearsprite.typeOrder = h;
+                        headgearsprite.zIndex = 4 + h;
+                        headgearsprite.parent(jobsprite);
+                        headgearsprite.headdir = config.headdir;
+                        sprites ~= headgearsprite;
+
+                        // Set to all frames if headgear has more frames
+                        if (headgearsprite.act.frames(config.action).length > 3)
+                        {
+                            overwriteFrame = false;
+                        }
+                    }
+                    catch (ResourceException err)
+                    {
+                        log(err.msg);
+                    }
+                }
+            }
+        }
+    }
+    if (requestFrame < 0)
+    {
+        foreach (sprite; sprites)
+        {
+            sprite.loadImagesOfAction(config.action);
+        }
+    }
+    else
+    {
+        foreach (sprite; sprites)
+        {
+            if (sprite.type == SpriteType.accessory && sprite.act.frames(config.action).length > 3)
+            {
+                sprite.loadImagesOfFrame(config.action,
+                        cast(uint)((requestFrame % 3) * sprite.act.frames(config.action).length / 3));
+            }
+            else
+            {
+                sprite.loadImagesOfFrame(config.action, requestFrame);
+            }
         }
     }
 
@@ -607,7 +693,7 @@ bool shouldDrawShadow(bool enableShadow, uint jobid, uint action) pure nothrow @
         return false;
     }
 
-    if (isPlayer(jobid))
+    if (isPlayer(jobid) || isMercenary(jobid))
     {
         const playerAction = intToPlayerAction(action);
 

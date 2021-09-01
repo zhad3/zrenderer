@@ -275,68 +275,94 @@ class Resolver
 
     string weaponSprite(uint jobid, uint weaponid, Gender gender)
     {
-        if (!isPlayer(jobid))
+        const isPlayer = isPlayer(jobid);
+        const isMercenary = isMercenary(jobid);
+
+        if (!isPlayer && !isMercenary)
         {
             return "";
         }
 
-        bool doram = isDoram(jobid);
-
-        if (jobid > 4000)
+        if (isPlayer)
         {
-            jobid -= AdvancedJobIndex;
-        }
-        if (jobid >= this._jobNamesWeapon.length)
-        {
-            return "";
-        }
+            const doram = isDoram(jobid);
 
-        version (Windows)
-        {
-            auto jobWeaponName = this._jobNamesWeapon[jobid];
-        }
-        else
-        {
-            import std.path : dirSeparator;
-            import std.algorithm.iteration : substitute;
+            if (jobid > 4000)
+            {
+                jobid -= AdvancedJobIndex;
+            }
+            if (jobid >= this._jobNamesWeapon.length)
+            {
+                return "";
+            }
 
-            auto jobWeaponName = this._jobNamesWeapon[jobid].substitute("\\", dirSeparator)
-                .to!string;
-        }
+            version (Windows)
+            {
+                auto jobWeaponName = this._jobNamesWeapon[jobid];
+            }
+            else
+            {
+                import std.path : dirSeparator;
+                import std.algorithm.iteration : substitute;
 
-        string weaponName = "";
-        import luad.lfunction : LuaFunction;
+                auto jobWeaponName = this._jobNamesWeapon[jobid].substitute("\\", dirSeparator)
+                    .to!string;
+            }
 
-        auto reqWeaponName = this._lua.get!LuaFunction("ReqWeaponName");
-        weaponName = fromWindows949(reqWeaponName.call!string(weaponid).representation).toUTF8.toLower;
+            string weaponName = "";
+            import luad.lfunction : LuaFunction;
 
-        if (weaponName.length == 0)
-        {
-            auto getRealWeaponId = this._lua.get!LuaFunction("GetRealWeaponId");
-            weaponid = getRealWeaponId.call!uint(weaponid);
+            auto reqWeaponName = this._lua.get!LuaFunction("ReqWeaponName");
             weaponName = fromWindows949(reqWeaponName.call!string(weaponid).representation).toUTF8.toLower;
 
             if (weaponName.length == 0)
             {
-                weaponName = "_" ~ weaponid.to!string;
+                auto getRealWeaponId = this._lua.get!LuaFunction("GetRealWeaponId");
+                weaponid = getRealWeaponId.call!uint(weaponid);
+                weaponName = fromWindows949(reqWeaponName.call!string(weaponid).representation).toUTF8.toLower;
+
+                if (weaponName.length == 0)
+                {
+                    weaponName = "_" ~ weaponid.to!string;
+                }
+            }
+
+            if (weaponName.length == 0)
+            {
+                return "";
+            }
+
+            if (doram)
+            {
+                return buildPath("도람족",
+                        jobWeaponName ~ "_" ~ gender.toString ~ weaponName);
+            }
+            else
+            {
+                return buildPath("인간족",
+                        jobWeaponName ~ "_" ~ gender.toString ~ weaponName);
+            }
+        }
+        else if (isMercenary)
+        {
+            if (jobid - 6017 <= 9)
+            {
+                // archer
+                return buildPath("인간족", "용병", "활용병_활");
+            }
+            else if (jobid - 6027 <= 9)
+            {
+                // lancer
+                return buildPath("인간족", "용병", "창용병_창");
+            }
+            else
+            {
+                // swordsman
+                return buildPath("인간족", "용병", "검용병_검");
             }
         }
 
-        if (weaponName.length == 0)
-        {
-            return "";
-        }
-
-        if (doram)
-        {
-            return buildPath("도람족",
-                    jobWeaponName ~ "_" ~ gender.toString ~ weaponName);
-        }
-        else
-        {
-            return buildPath("인간족",
-                    jobWeaponName ~ "_" ~ gender.toString ~ weaponName);
-        }
+        return "";
     }
 
     string shieldSprite(uint jobid, uint shieldid, Gender gender)
