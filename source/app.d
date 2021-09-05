@@ -1,7 +1,7 @@
 module app;
 import config : Config, Gender, HeadDirection;
 import luad.state : LuaState;
-import resource : ResourceManager;
+import resource : ResourceManager, ResourceException;
 import resolver;
 import sprite;
 
@@ -291,8 +291,6 @@ Sprite[] processNonPlayer(uint jobid, LogFunc log, immutable Config config, Reso
         return [];
     }
 
-    import resource.base : ResourceException;
-
     Sprite jobsprite;
 
     try
@@ -431,7 +429,6 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
         ResourceManager resManager, ref LuaState L, out float interval, ref int requestFrame)
 {
     import std.exception : ErrnoException;
-    import resource.base : ResourceException;
 
     import std.stdio : writeln;
 
@@ -441,20 +438,11 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
     bool overwriteFrame = config.headdir != HeadDirection.all && config.frame < 0 &&
         (playerAction == PlayerAction.stand || playerAction == PlayerAction.sit);
 
-    const bodyspritepath = resolve.playerBodySprite(jobid, config.gender);
-    if (bodyspritepath.length == 0)
-    {
-        import std.format : format;
-
-        log(format("Couldn't resolve player body sprite for job %d and gender %s", jobid, config.gender));
-        return [];
-    }
-
     Sprite bodysprite;
 
     try
     {
-        bodysprite = resManager.getSprite(bodyspritepath, SpriteType.playerbody);
+        bodysprite = loadBodySprite(jobid, config.outfit, config.gender, resolve, resManager);
         bodysprite.zIndex = zIndexForSprite(bodysprite, direction);
     }
     catch (ResourceException err)
@@ -725,4 +713,46 @@ bool shouldDrawShadow(bool enableShadow, uint jobid, uint action) pure nothrow @
     }
 
     return true;
+}
+
+/// Throws ResourceException
+private Sprite loadBodySprite(uint jobid, uint outfitid, const scope Gender gender,
+        Resolver resolve, ResourceManager resManager)
+{
+    string bodyspritepath;
+    Sprite bodysprite;
+
+    bool useOutfit = false;
+
+    if (outfitid > 0)
+    {
+        bodyspritepath = resolve.playerBodyAltSprite(jobid, gender, outfitid);
+        if (bodyspritepath.length > 0)
+        {
+            try
+            {
+                bodysprite = resManager.getSprite(bodyspritepath, SpriteType.playerbody);
+                useOutfit = true;
+            }
+            catch (ResourceException err)
+            {
+                // TODO show message to user?
+            }
+        }
+    }
+
+    if (!useOutfit)
+    {
+        bodyspritepath = resolve.playerBodySprite(jobid, gender);
+
+        import std.exception : enforce;
+        import std.format : format;
+
+        enforce!ResourceException(bodyspritepath.length > 0,
+                format("Couldn't resolve player body sprite for job %d and gender %s", jobid, gender));
+
+        bodysprite = resManager.getSprite(bodyspritepath, SpriteType.playerbody);
+    }
+
+    return bodysprite;
 }

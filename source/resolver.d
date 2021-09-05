@@ -165,6 +165,30 @@ class Resolver
         }
     }
 
+    string playerBodyAltSprite(uint jobid, Gender gender, uint costumeid)
+    {
+
+        if (isPlayer(jobid))
+        {
+            auto jobname = this.jobSpriteName(jobid);
+            auto costume = costumeid.to!string;
+            if (isDoram(jobid))
+            {
+                return buildPath("도람족", "몸통", gender.toString, "costume_" ~ costume,
+                        jobname ~ "_" ~ gender.toString ~ "_" ~ costume);
+            }
+            else
+            {
+                return buildPath("인간족", "몸통", gender.toString, "costume_" ~ costume,
+                        jobname ~ "_" ~ gender.toString ~ "_" ~ costume);
+            }
+        }
+        else
+        {
+            return "";
+        }
+    }
+
     string playerHeadSprite(uint jobid, uint headid, Gender gender)
     {
         string path;

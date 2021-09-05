@@ -79,6 +79,10 @@ struct Config
     @Desc("Head id which should be used when drawing a player.")
     uint head = 1;
 
+    @Desc("The alternative outfit for player characters. Not all characters have alternative outfits. " ~
+            "In these cases the default character will be rendered instead. Value of 0 means no outfit.")
+    uint outfit = 0;
+
     @Desc("Headgears which should be attached to the players head. Can contain up to 3 " ~
             "comma separated values.")
     uint[] headgear;
