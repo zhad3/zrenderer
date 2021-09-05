@@ -10,6 +10,7 @@ struct RenderRequestData
     @optional Nullable!int frame;
     @optional Nullable!Gender gender;
     @optional Nullable!uint head;
+    @optional Nullable!uint outfit;
     @optional Nullable!uint garment;
     @optional Nullable!uint weapon;
     @optional Nullable!uint shield;
