@@ -563,7 +563,7 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
         }
     }
 
-    if (config.garment > 0)
+    if (config.garment > 0 && !isMadogear(jobid))
     {
         auto garmentspritepath = resolve.garmentSprite(jobid, config.garment, config.gender);
         if (garmentspritepath.length > 0)

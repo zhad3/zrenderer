@@ -45,6 +45,11 @@ bool isBaby(uint jobid) pure nothrow @safe @nogc
     return false;
 }
 
+bool isMadogear(uint jobid) pure nothrow @safe @nogc
+{
+    return jobid == 4086 || jobid == 4087 || jobid == 4112;
+}
+
 
 class Resolver
 {
