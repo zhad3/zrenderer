@@ -83,8 +83,8 @@ auto headgearOffsetForDoram(uint headgear, uint direction, const Gender gender, 
 
     if (returnValues.length == 2)
     {
-        int x = returnValues[0].isNil() ? 0 : -returnValues[0].to!int;
-        int y = returnValues[1].isNil() ? 0 : -returnValues[1].to!int;
+        int x = returnValues[0].isNil() ? 0 : returnValues[0].to!int;
+        int y = returnValues[1].isNil() ? 0 : returnValues[1].to!int;
         return Point(x, y);
     }
 

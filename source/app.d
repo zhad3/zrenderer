@@ -555,7 +555,7 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
                         const additionaloffset = headgearOffsetForDoram(config.headgear[h], direction, config.gender, L);
                         if (additionaloffset != additionaloffset.init)
                         {
-                            headgearsprite.addOffsetToAttachPoint(config.action, config.frame, 0, additionaloffset.x, additionaloffset.y);
+                            headgearsprite.addOffsetToAttachPoint(config.action, config.frame, 0, -additionaloffset.x, -additionaloffset.y);
                         }
                     }
 
