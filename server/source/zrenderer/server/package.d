@@ -8,7 +8,7 @@ import vibe.http.server;
 import vibe.web.rest;
 import zconfig : initializeConfig, getConfigArguments;
 
-enum usage = "A REST server to render sprites from a Gravity game";
+enum usage = "A REST server to render sprites from Ragnarok Online";
 
 int main(string[] args)
 {
@@ -20,6 +20,7 @@ int main(string[] args)
         args.insertInPlace(1, configArgs);
     }
     import std.getopt : GetOptException;
+    import std.conv : ConvException;
 
     Config config;
     bool helpWanted = false;
@@ -34,6 +35,13 @@ int main(string[] args)
         enforce!GetOptException(isJobArgValid(config.job), "job ids are not valid.");
     }
     catch (GetOptException e)
+    {
+        import std.stdio : stderr;
+
+        stderr.writefln("Error parsing options: %s", e.msg);
+        return 1;
+    }
+    catch (ConvException e)
     {
         import std.stdio : stderr;
 
