@@ -1,6 +1,11 @@
 module sprite;
 
-import resource : ResourceManager, ActResource, SprResource, ImfResource, ActSprite;
+import resource : ResourceManager, ActResource, SprResource, ImfResource, ActSprite, Palette;
+import linearalgebra : Vector2, Vector3;
+import luad.state : LuaState;
+import config : Gender, toInt;
+
+
 
 enum SpriteType
 {
@@ -117,9 +122,6 @@ int zIndexForSprite(const scope Sprite sprite, int direction) pure nothrow @safe
     }
 }
 
-import luad.state : LuaState;
-import config : Gender;
-
 int zIndexForGarmentSprite(uint jobid, uint garmentid, uint action, uint frame,
         Gender gender, int direction, ref LuaState L)
 {
@@ -127,7 +129,7 @@ int zIndexForGarmentSprite(uint jobid, uint garmentid, uint action, uint frame,
 
     auto drawOnTopFunc = L.get!LuaFunction("_New_DrawOnTop");
 
-    bool onTop = drawOnTopFunc.call!bool(garmentid, gender == Gender.female ? 0 : 1, jobid, action, frame);
+    bool onTop = drawOnTopFunc.call!bool(garmentid, gender.toInt(), jobid, action, frame);
 
     bool topLeft = direction >= 2 && direction <= 5;
 
@@ -211,8 +213,6 @@ public:
         return this._parent;
     }
 
-    import linearalgebra : Vector3;
-
     /**
       Unused. Attachpoints are directly referenced with the parent
       attachpoint. They do not recursively add up.
@@ -237,8 +237,6 @@ public:
             return offset;
         }
     }
-
-    import resource.palette : Palette;
 
     void loadImagesOfFrame(uint action, uint frame, const Palette palette = Palette.init)
     {
@@ -274,6 +272,26 @@ public:
             ValueType value) pure @safe @nogc
     {
         this._act.modifyAttachpoint!(prop)(action, frame, attachpoint, value);
+    }
+
+    void addOffsetToAttachPoint(uint action, uint frame, uint attachpoint, int x, int y) pure nothrow @safe
+    {
+        if (frame == uint.max)
+        {
+            const numFrames = cast(uint) this.act.numberOfFrames(action);
+            foreach (f; 0 .. numFrames)
+            {
+                const ap = this.act.attachpoint(action, f, attachpoint);
+                this.modifyActAttachPoint!"x"(action, f, attachpoint, ap.x + x);
+                this.modifyActAttachPoint!"y"(action, f, attachpoint, ap.y + y);
+            }
+        }
+        else
+        {
+            const ap = this.act.attachpoint(action, frame, attachpoint);
+            this.modifyActAttachPoint!"x"(action, frame, attachpoint, ap.x + x);
+            this.modifyActAttachPoint!"y"(action, frame, attachpoint, ap.y + y);
+        }
     }
 
     void applyScaling(uint action, uint frame, float scale) pure @safe

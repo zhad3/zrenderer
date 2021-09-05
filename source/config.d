@@ -20,6 +20,18 @@ string toString(Gender gender) pure nothrow @safe @nogc
     }
 }
 
+int toInt(Gender gender) pure nothrow @safe @nogc
+{
+    switch (gender)
+    {
+    case Gender.male:
+        return 1;
+    case Gender.female:
+    default:
+        return 0;
+    }
+}
+
 enum HeadDirection
 {
     straight,
