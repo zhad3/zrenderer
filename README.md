@@ -2,17 +2,35 @@
 
 Tool to render sprites from the game Ragnarok Online. This tool is available as either a webservice or as a CLI tool.
 
+##### Table of contents
+* [Usage](#usage)
+ * [CLI](#cli)
+   * [Example](#example)
+ * [Server](#server)
+   * [API](#api)
+     * [Request](#request)
+     * [Response](#response)
+     * [Example](#example-1)
+* [Dependencies when building](#dependencies-when-building)
+ * [Linux](#linux)
+ * [Windows](#windows)
+* [Building](#building)
+ * [CLI](#cli-1)
+ * [Server](#server-1)
+ * [Extra step for Windows](#extra-step-for-windows)
+
 ## Usage
 ### CLI
 `./zrenderer -h`
 ```
-A tool to render sprites from a Gravity game
+A tool to render sprites from Ragnarok Online
 -c       --config Specific config file to use instead of the default. Default: zrenderer.conf
 -o       --outdir Output directory where all rendered sprites will be saved to. Default: output
    --resourcepath Path to the resource directory. All resources are tried to be found within this directory. Default: 
 -j          --job Job id(s) which should be rendered. Can contain multiple comma separated values. Default: 
 -g       --gender Gender of the player character. Possible values are: male or female. Default: male
            --head Head id which should be used when drawing a player. Default: 1
+         --outfit The alternative outfit for player characters. Not all characters have alternative outfits. In these cases the default character will be rendered instead. Value of 0 means no outfit. Default: 0
        --headgear Headgears which should be attached to the players head. Can contain up to 3 comma separated values. Default: 
         --garment Garment which should be attached to the players body. Default: 0
          --weapon Weapon which should be attached to the players body. Default: 0
@@ -21,7 +39,7 @@ A tool to render sprites from a Gravity game
 -f        --frame Frame of the action which should be drawn. Set to -1 to draw all frames. Default: -1
     --bodyPalette Palette for the body sprite. Set to -1 to use the standard palette. Default: -1
     --headPalette Palette for the head sprite. Set to -1 to use the standard palette. Default: -1
-        --headdir Direction in which the head should turn. This is only applied to player sprites and only to the stand and sit action. Possible values are: straight, left, right or all. If 'all' is set then this direction system is ignored and all frames are interpreted like any other one. Default: straight
+        --headdir Direction in which the head should turn. This is only applied to player sprites and only to the stand and sit action. Possible values are: straight, left, right or all. If 'all' is set then this direction system is ignored and all frames are interpreted like any other one. Default: all
    --enableShadow Draw shadow underneath the sprite. Default: true
    --singleframes Generate single frames of an animation. Default: false
           --hosts Hostnames of the server. Can contain multiple comma separated values. Default: localhost
@@ -71,6 +89,7 @@ The endpoint accepts a request in json format with the following attributes:
 | frame | No | number |
 | gender | No | string |
 | head | No | number >= 0 |
+| outfit | No | number >= 0 |
 | garment | No | number >= 0 |
 | weapon | No | number >= 0 |
 | shield | No | number >= 0 |
@@ -110,8 +129,16 @@ The following responses may be returned by the server
 }
 ```
 
-## Requirements
-TODO
+## Dependencies when building
+When building for the first time libpng and lua5.1 will be compiled which require a c-compiler.
+
+## Linux
+`binutils`, `autoconf`, `libtool`, `zlib`, `openssl`.
+
+When available choose the dev versions of the packages.
+
+## Windows
+[Build Tools for Visual Studio](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019)
 
 ## Building
 From within the root directory of this project you can build the CLI and the Server.
@@ -119,6 +146,12 @@ From within the root directory of this project you can build the CLI and the Ser
 Run `dub build :cli`.
 ### Server
 Run `dub build :server`.
+
+### Extra step for Windows:
+The above commands must be executed in the [Visual Studio Developer Command Prompt](https://docs.microsoft.com/en-us/visualstudio/ide/reference/command-prompt-powershell)
+which will be available when installing the Build Tools for Visual Studio (see above).
+
+Depending on your system the command prompt will be available for x86 and x64. Whichever you choose will build zrenderer for the same architecture.
 
 ---
 All Ragnarok Online related media and content are copyrighted © by Gravity Co., Ltd & Lee Myoungjin(studio DTDS) and have all rights reserved.
