@@ -12,5 +12,11 @@
     },
     "sourcePaths": ["../source/"],
     "importPaths": ["../source/"],
-    "mainSourceFile": "source/zrenderer/cli/package.d"
+    "mainSourceFile": "source/zrenderer/cli/package.d",
+    "configurations": [
+        {
+            "name": "docker",
+            "dflags": ["-link-defaultlib-shared=false"]
+        }
+    ]
 }

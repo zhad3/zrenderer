@@ -14,5 +14,11 @@
     "versions": ["VibeDisableCommandLineParsing"],
     "sourcePaths": ["../source/", "./source/"],
     "importPaths": ["../source/", "./source/"],
-    "mainSourceFile": "source/zrenderer/server/package.d"
+    "mainSourceFile": "source/zrenderer/server/package.d",
+    "configurations": [
+        {
+            "name": "docker",
+            "dflags": ["-link-defaultlib-shared=false"]
+        }
+    ]
 }
