@@ -4,20 +4,20 @@ Tool to render sprites from the game Ragnarok Online. This tool is available as 
 
 ##### Table of contents
 * [Usage](#usage)
- * [CLI](#cli)
-   * [Example](#example)
- * [Server](#server)
-   * [API](#api)
-     * [Request](#request)
-     * [Response](#response)
-     * [Example](#example-1)
+  * [CLI](#cli)
+    * [Example](#example)
+  * [Server](#server)
+    * [API](#api)
+      * [Request](#request)
+      * [Response](#response)
+      * [Example](#example-1)
 * [Dependencies when building](#dependencies-when-building)
- * [Linux](#linux)
- * [Windows](#windows)
+  * [Linux](#linux)
+  * [Windows](#windows)
 * [Building](#building)
- * [CLI](#cli-1)
- * [Server](#server-1)
- * [Extra step for Windows](#extra-step-for-windows)
+  * [CLI](#cli-1)
+  * [Server](#server-1)
+  * [Extra step for Windows](#extra-step-for-windows)
 
 ## Usage
 ### CLI
