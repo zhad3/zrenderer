@@ -24,28 +24,29 @@ Tool to render sprites from the game Ragnarok Online. This tool is available as 
 `./zrenderer -h`
 ```
 A tool to render sprites from Ragnarok Online
--c       --config Specific config file to use instead of the default. Default: zrenderer.conf
--o       --outdir Output directory where all rendered sprites will be saved to. Default: output
-   --resourcepath Path to the resource directory. All resources are tried to be found within this directory. Default: 
--j          --job Job id(s) which should be rendered. Can contain multiple comma separated values. Default: 
--g       --gender Gender of the player character. Possible values are: male or female. Default: male
-           --head Head id which should be used when drawing a player. Default: 1
-         --outfit The alternative outfit for player characters. Not all characters have alternative outfits. In these cases the default character will be rendered instead. Value of 0 means no outfit. Default: 0
-       --headgear Headgears which should be attached to the players head. Can contain up to 3 comma separated values. Default: 
-        --garment Garment which should be attached to the players body. Default: 0
-         --weapon Weapon which should be attached to the players body. Default: 0
-         --shield Shield which should be attached to the players body. Default: 0
--a       --action Action of the job which should be drawn. Default: 0
--f        --frame Frame of the action which should be drawn. Set to -1 to draw all frames. Default: -1
-    --bodyPalette Palette for the body sprite. Set to -1 to use the standard palette. Default: -1
-    --headPalette Palette for the head sprite. Set to -1 to use the standard palette. Default: -1
-        --headdir Direction in which the head should turn. This is only applied to player sprites and only to the stand and sit action. Possible values are: straight, left, right or all. If 'all' is set then this direction system is ignored and all frames are interpreted like any other one. Default: all
-   --enableShadow Draw shadow underneath the sprite. Default: true
-   --singleframes Generate single frames of an animation. Default: false
-          --hosts Hostnames of the server. Can contain multiple comma separated values. Default: localhost
-           --port Port of the server. Default: 11011
-        --logfile Log file to write to. E.g. /var/log/zrenderer.log. Leaving it empty will log to stdout. Default: 
--h         --help This help information.
+-c                --config Specific config file to use instead of the default. Default: zrenderer.conf
+-o                --outdir Output directory where all rendered sprites will be saved to. Default: output
+            --resourcepath Path to the resource directory. All resources are tried to be found within this directory. Default: 
+-j                   --job Job id(s) which should be rendered. Can contain multiple comma separated values. Default: 
+-g                --gender Gender of the player character. Possible values are: male or female. Default: male
+                    --head Head id which should be used when drawing a player. Default: 1
+                  --outfit The alternative outfit for player characters. Not all characters have alternative outfits. In these cases the default character will be rendered instead. Value of 0 means no outfit. Default: 0
+                --headgear Headgears which should be attached to the players head. Can contain up to 3 comma separated values. Default: 
+                 --garment Garment which should be attached to the players body. Default: 0
+                  --weapon Weapon which should be attached to the players body. Default: 0
+                  --shield Shield which should be attached to the players body. Default: 0
+-a                --action Action of the job which should be drawn. Default: 0
+-f                 --frame Frame of the action which should be drawn. Set to -1 to draw all frames. Default: -1
+             --bodyPalette Palette for the body sprite. Set to -1 to use the standard palette. Default: -1
+             --headPalette Palette for the head sprite. Set to -1 to use the standard palette. Default: -1
+                 --headdir Direction in which the head should turn. This is only applied to player sprites and only to the stand and sit action. Possible values are: straight, left, right or all. If 'all' is set then this direction system is ignored and all frames are interpreted like any other one. Default: all
+            --enableShadow Draw shadow underneath the sprite. Default: true
+            --singleframes Generate single frames of an animation. Default: false
+   --enableUniqueFilenames If enabled the output filenames will be the checksum of input parameters. This will ensure that each request creates a filename that is unique to the input parameters and no overlapping for the same job occurs. Default: false
+                   --hosts Hostnames of the server. Can contain multiple comma separated values. Default: localhost
+                    --port Port of the server. Default: 11011
+                 --logfile Log file to write to. E.g. /var/log/zrenderer.log. Leaving it empty will log to stdout. Default: 
+-h                  --help This help information.
 ```
 Options _hosts_, _port_ and _logfile_ are ignored for the CLI tool.
 ### Example
