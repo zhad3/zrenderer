@@ -14,6 +14,7 @@
     "importPaths": ["../source/"],
     "mainSourceFile": "source/zrenderer/cli/package.d",
     "configurations": [
+        { "name": "default" },
         {
             "name": "docker",
             "dflags": ["-link-defaultlib-shared=false"]
