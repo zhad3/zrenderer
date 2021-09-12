@@ -119,6 +119,11 @@ struct Config
     @Desc("Generate single frames of an animation.")
     bool singleframes = false;
 
+    @Desc("If enabled the output filenames will be the checksum of input parameters. This will ensure that each " ~
+            "request creates a filename that is unique to the input parameters and no overlapping for the same " ~
+            "job occurs.")
+    bool enableUniqueFilenames = false;
+
     @Section("server")
     {
         @Desc("Hostnames of the server. Can contain multiple comma separated values.")

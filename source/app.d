@@ -226,6 +226,20 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
                 images.applyBabyScaling(0.75);
             }
 
+
+            string outputFilename;
+
+            if (config.enableUniqueFilenames)
+            {
+                import uniqueid : createUid;
+
+                outputFilename = createUid(jobid, config);
+            }
+            else
+            {
+                outputFilename = jobid.to!string;
+            }
+
             if (images.length > 0)
             {
                 import imageformats.png : saveToPngFile;
@@ -236,7 +250,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
                 {
                     foreach (i, image; images)
                     {
-                        auto filename = buildPath(config.outdir, format("%d_%d_%d.png", jobid, config.action, i));
+                        auto filename = buildPath(config.outdir, format("%s-%d-%d.png", outputFilename, config.action, i));
 
                         saveToPngFile(image, filename);
 
@@ -248,7 +262,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
                 {
                     import imageformats.png : saveToApngFile;
 
-                    auto filename = buildPath(config.outdir, format("%d_%d.png", jobid, config.action));
+                    auto filename = buildPath(config.outdir, format("%s-%d.png", outputFilename, config.action));
 
                     saveToApngFile(images, filename, (25 * animationInterval).to!ushort);
 
@@ -258,7 +272,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
                 {
                     if (requestFrame < 0)
                     {
-                        auto filename = buildPath(config.outdir, format("%d_%d.png", jobid, config.action));
+                        auto filename = buildPath(config.outdir, format("%s-%d.png", outputFilename, config.action));
 
                         saveToPngFile(images[0], filename);
 
@@ -267,7 +281,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
                     else
                     {
                         auto filename = buildPath(config.outdir,
-                                format("%d_%d_%d.png", jobid, config.action, requestFrame));
+                                format("%s-%d-%d.png", outputFilename, config.action, requestFrame));
                         saveToPngFile(images[0], filename);
 
                         filenames ~= filename;
