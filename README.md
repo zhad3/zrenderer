@@ -11,6 +11,7 @@ Tool to render sprites from the game Ragnarok Online. This tool is available as 
       * [Request](#request)
       * [Response](#response)
       * [Example](#example-1)
+* [Docker](#docker)
 * [Dependencies when building](#dependencies-when-building)
   * [Linux](#linux)
   * [Windows](#windows)
@@ -129,6 +130,24 @@ The following responses may be returned by the server
     ]
 }
 ```
+## Docker
+You can use the pre-built and published images to run the server.
+
+In a terminal run the following command to get up and running:
+
+```
+docker run -d --name zrenderer \
+  -v ./zrenderer.docker.conf:/home/zrenderer/zrenderer.conf \
+  -v ./output:/home/zrenderer/output \
+  -v ./my-resources:/home/zrenderer/resources \
+  -p 11011:11011 \
+  zrenderer:latest
+```
+
+You will need to provide three directory/files:
+- A configuration file (see the example `zrenderer.docker.conf`)
+- The output directory where the server will store the images
+- The resource directory where all the assets from Ragnarok Online reside in
 
 ## Dependencies when building
 When building for the first time libpng and lua5.1 will be compiled which require a c-compiler.
