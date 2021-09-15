@@ -3,6 +3,7 @@
 Tool to render sprites from the game Ragnarok Online. This tool is available as either a webservice or as a CLI tool.
 
 ##### Table of contents
+* [Required Resources](#required-resources)
 * [Usage](#usage)
   * [CLI](#cli)
     * [Example](#example)
@@ -19,6 +20,9 @@ Tool to render sprites from the game Ragnarok Online. This tool is available as 
   * [CLI](#cli-1)
   * [Server](#server-1)
   * [Extra step for Windows](#extra-step-for-windows)
+
+## Required Resources
+Please see [RESOURCES.md](https://github.com/zhad3/zrenderer/blob/main/RESOURCES.md).
 
 ## Usage
 ### CLI
@@ -57,8 +61,8 @@ If not otherwise specified the requested sprites will be renderered as an APNG a
 `./zrenderer --job=1001`  
 Result: ![Scorpion](examples/1001_0.png)
 
-**Render frame 10 of the monster with id 3000 (Necromancer) of action 16 (Attack)**  
-`./zrenderer --job=3000 --action=16 --frame=10`  
+**Render frame 10 of the monster with id 1870 (Necromancer) of action 16 (Attack)**  
+`./zrenderer --job=1870 --action=16 --frame=10`  
 Result: ![Necromancer](examples/1870_16_10.png)
 
 **Render character with id 4012 (Sniper), action 17 (Sit) while looking to the left (indicated by frame 2)**  
