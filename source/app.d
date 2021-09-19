@@ -164,6 +164,34 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
 
         for (auto jobid = startJob; jobid <= endJob; ++jobid)
         {
+            string outputFilename;
+
+            if (config.enableUniqueFilenames)
+            {
+                import uniqueid : createUid;
+
+                outputFilename = createUid(jobid, config);
+            }
+            else
+            {
+                outputFilename = jobid.to!string;
+            }
+
+            if (config.returnExistingFiles)
+            {
+                string[] existingFiles = existingFilenames(outputFilename, config.outdir);
+
+                debug {
+                    import std.stdio : writeln;
+                    writeln(existingFiles);
+                }
+
+                if (existingFiles.length > 0)
+                {
+                    return existingFiles;
+                }
+            }
+
 
             Sprite[] sprites;
 
@@ -227,30 +255,28 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
             }
 
 
-            string outputFilename;
-
-            if (config.enableUniqueFilenames)
-            {
-                import uniqueid : createUid;
-
-                outputFilename = createUid(jobid, config);
-            }
-            else
-            {
-                outputFilename = jobid.to!string;
-            }
-
             if (images.length > 0)
             {
                 import imageformats.png : saveToPngFile;
                 import std.format : format;
                 import std.path : buildPath;
+                import std.file : mkdirRecurse, FileException;
+
+                try
+                {
+                    mkdirRecurse(buildPath(config.outdir, outputFilename));
+                }
+                catch (FileException err)
+                {
+                    log(err.msg);
+                    continue;
+                }
 
                 if (config.singleframes)
                 {
                     foreach (i, image; images)
                     {
-                        auto filename = buildPath(config.outdir, format("%s-%d-%d.png", outputFilename, config.action, i));
+                        auto filename = buildPath(config.outdir, outputFilename, format("%d-%d.png", config.action, i));
 
                         saveToPngFile(image, filename);
 
@@ -262,7 +288,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
                 {
                     import imageformats.png : saveToApngFile;
 
-                    auto filename = buildPath(config.outdir, format("%s-%d.png", outputFilename, config.action));
+                    auto filename = buildPath(config.outdir, outputFilename, format("%d.png", config.action));
 
                     saveToApngFile(images, filename, (25 * animationInterval).to!ushort);
 
@@ -272,7 +298,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
                 {
                     if (requestFrame < 0)
                     {
-                        auto filename = buildPath(config.outdir, format("%s-%d.png", outputFilename, config.action));
+                        auto filename = buildPath(config.outdir, outputFilename, format("%d.png", config.action));
 
                         saveToPngFile(images[0], filename);
 
@@ -280,8 +306,8 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
                     }
                     else
                     {
-                        auto filename = buildPath(config.outdir,
-                                format("%s-%d-%d.png", outputFilename, config.action, requestFrame));
+                        auto filename = buildPath(config.outdir, outputFilename,
+                                format("%d-%d.png", config.action, requestFrame));
                         saveToPngFile(images[0], filename);
 
                         filenames ~= filename;
@@ -769,4 +795,34 @@ private Sprite loadBodySprite(uint jobid, uint outfitid, const scope Gender gend
     }
 
     return bodysprite;
+}
+
+private string[] existingFilenames(const scope string filename, const scope string outdir)
+{
+    import std.path : buildPath;
+    import std.file : exists;
+
+    const path = buildPath(outdir, filename);
+
+    if (exists(path))
+    {
+        import std.array : array;
+        import std.algorithm : each, filter, map;
+        import std.file : dirEntries, SpanMode, FileException;
+        import std.path : baseName;
+
+        try
+        {
+            return dirEntries(path, "*.png", SpanMode.shallow, false)
+                .filter!(entry => entry.isFile)
+                .map!(entry => buildPath(path, baseName(entry.name)))
+                .array;
+        }
+        catch (FileException err)
+        {
+            // Fall through
+        }
+    }
+
+    return [];
 }

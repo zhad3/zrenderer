@@ -124,6 +124,10 @@ struct Config
             "job occurs.")
     bool enableUniqueFilenames = false;
 
+    @Desc("Whether to return already existing sprites (true) or always re-render it (false). You should only use " ~
+            "this option in conjuction with 'enableUniqueFilenames=true'.")
+    bool returnExistingFiles = false;
+
     @Section("server")
     {
         @Desc("Hostnames of the server. Can contain multiple comma separated values.")
