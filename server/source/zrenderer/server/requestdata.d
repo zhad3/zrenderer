@@ -2,7 +2,7 @@ module zrenderer.server.requestdata;
 
 import vibe.data.serialization : optional;
 import std.typecons : Nullable;
-import config : Gender;
+import config : Gender, HeadDirection;
 
 struct RenderRequestData
 {
@@ -16,6 +16,7 @@ struct RenderRequestData
     @optional Nullable!uint shield;
     @optional Nullable!int bodyPalette;
     @optional Nullable!int headPalette;
+    @optional Nullable!HeadDirection headdir;
     @optional Nullable!bool enableShadow;
     @optional Nullable!(uint[]) headgear;
     string[] job;

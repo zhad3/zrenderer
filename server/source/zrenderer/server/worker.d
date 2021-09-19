@@ -11,18 +11,11 @@ import resolver : Resolver;
 import luamanager : loadRequiredLuaFiles;
 import luad.state : LuaState;
 
-static ResourceManager createAndInitResourceManager(LuaState L, string resourcePath) nothrow
+static ResourceManager createAndInitResourceManager(LuaState L, string resourcePath)
 {
     auto resManager = new ResourceManager(resourcePath);
 
-    try
-    {
-        loadRequiredLuaFiles(L, resManager);
-    }
-    catch (Throwable e)
-    {
-        logError("%s in %s:%d", e.msg, e.file, e.line);
-    }
+    loadRequiredLuaFiles(L, resManager);
 
     return resManager;
 }
