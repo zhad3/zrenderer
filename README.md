@@ -49,7 +49,7 @@ A tool to render sprites from Ragnarok Online
             --singleframes Generate single frames of an animation. Default: false
    --enableUniqueFilenames If enabled the output filenames will be the checksum of input parameters. This will ensure that each request creates a filename that is unique to the input parameters and no overlapping for the same job occurs. Default: false
      --returnExistingFiles Whether to return already existing sprites (true) or always re-render it (false). You should only use this option in conjuction with 'enableUniqueFilenames=true'. Default: false
-                  --canvas Sets a canvas onto which the sprite should be rendered. The canvas requires two options: its size and an origin point inside the canvas where the sprite should be placed. The format is as following: \<width>x\<height>±\<x>±\<y>. An origin point of +0+0 is equal to the top left corner. Example: 200x250+100+125. This would create a canvas and place the sprite in the center. Default: 
+                  --canvas Sets a canvas onto which the sprite should be rendered. The canvas requires two options: its size and an origin point inside the canvas where the sprite should be placed. The format is as following: <width>x<height>±<x>±<y>. An origin point of +0+0 is equal to the top left corner. Example: 200x250+100+125. This would create a canvas and place the sprite in the center. Default: 
                    --hosts Hostnames of the server. Can contain multiple comma separated values. Default: localhost
                     --port Port of the server. Default: 11011
                  --logfile Log file to write to. E.g. /var/log/zrenderer.log. Leaving it empty will log to stdout. Default: 
@@ -75,10 +75,15 @@ Result: ![Sniper](examples/4012_17_2.png)
 `./zrenderer --job=1 --headgear=4,125 --garment=1 --weapon=2 --head=4 --gender=female --action=32`  
 Result: ![Swordman](examples/1_32.png)
 
-**Render character with id 0 (Novice), action 93 (Attack) with garment 1 (Wings), weapon 1 (Sword), head 15 and gender male.**  
-**and render the sprite in a canvas of size 200x200px placing it at x=75 and y=175.**  
+**Render character with id 0 (Novice), action 93 (Attack) with garment 1 (Wings), weapon 1 (Sword), head 15, gender male**  
+**and place the sprite in a canvas of size 200x200px at x=75 and y=175.**  
 `./zrenderer --job=0 --head=15 --bodyPalette=1 --weapon=2 --garment=1 --gender=male --action=93 --canvas=200x200+75+175`  
-Result: ![Novice](examples/0_93.png)
+Result:
+
+| Image border |
+| --- |
+| ![Novice](examples/0_93.png) |
+
 ## Server
 `./zrenderer-server -h`
 ```
@@ -123,9 +128,9 @@ The following responses may be returned by the server
 
 | HTTP Status | Content-Type | Body | Description |
 | --- | --- | --- | --- |
-| 200 | application/json | `{"output": ["0_1.png", "1_2.png", ...]}` | JSON Object with one attribute called "output". The output attribute contains an array of filenames of the generated sprites. |
-| 400 | text/plain | \<error message> | Returned when the request is invalid. |
-| 500 | text/plain | \<error message> | Returned when an error occurred. |
+| 200 | application/json | `{"output": ["out/0/1-0.png", "out/1002/1.png", ...]}` | JSON Object with one attribute called "output". The output attribute contains an array of filenames of the generated sprites. |
+| 400 | application/json | `{"statusMessage": "<error message>"}` | Returned when the request is invalid. |
+| 500 | application/json | `{"statusMessage": "<error message>"}`  | Returned when an error occurred. |
 
 #### Example
 
