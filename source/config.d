@@ -63,13 +63,11 @@ struct Config
     @Short("o") @Desc("Output directory where all rendered sprites will be saved to.")
     string outdir = "output";
 
-    @Desc(
-            "Path to the resource directory. All resources are tried to be found within " ~
+    @Desc("Path to the resource directory. All resources are tried to be found within " ~
             "this directory.")
     string resourcepath = "";
 
-    @Short("j") @Desc(
-            "Job id(s) which should be rendered. Can contain multiple comma " ~
+    @Short("j") @Desc("Job id(s) which should be rendered. Can contain multiple comma " ~
             "separated values.")
     string[] job;
 
@@ -128,6 +126,12 @@ struct Config
             "this option in conjuction with 'enableUniqueFilenames=true'.")
     bool returnExistingFiles = false;
 
+    @Desc("Sets a canvas onto which the sprite should be rendered. The canvas requires two options: its size and " ~
+            "an origin point inside the canvas where the sprite should be placed. The format is as following: " ~
+            "<width>x<height>±<x>±<y>. An origin point of +0+0 is equal to the top left corner. " ~
+            "Example: 200x250+100+125. This would create a canvas and place the sprite in the center.")
+    string canvas = "";
+
     @Section("server")
     {
         @Desc("Hostnames of the server. Can contain multiple comma separated values.")
@@ -136,8 +140,7 @@ struct Config
         @Desc("Port of the server.")
         ushort port = 11011;
 
-        @Desc(
-                "Log file to write to. E.g. /var/log/zrenderer.log. Leaving it empty will log to stdout.")
+        @Desc("Log file to write to. E.g. /var/log/zrenderer.log. Leaving it empty will log to stdout.")
         string logfile = "";
     }
 }

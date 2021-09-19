@@ -11,6 +11,7 @@ import resolver : Resolver;
 import luamanager : loadRequiredLuaFiles;
 import luad.state : LuaState;
 
+/// Throws ResourceException
 static ResourceManager createAndInitResourceManager(LuaState L, string resourcePath)
 {
     auto resManager = new ResourceManager(resourcePath);
@@ -47,12 +48,20 @@ static void renderWorker(Task caller) nothrow
 
         immutable(string)[] filenames = cast(immutable(string)[]) run(config, delegate(string) => logInfo(string), L, resManager, resolver);
 
-
         send(caller, filenames);
     }
     catch (Throwable e)
     {
         logError("%s in %s:%d", e.msg, e.file, e.line);
-        return;
+        try
+        {
+            send(caller, true); // Don't make the caller wait and tell it we failed
+        }
+        catch (Throwable e2)
+        {
+            // I have no clue what is supposed to be thrown here. Docs say nothing.
+            // Not even gonna bother logging anything, because at this point the whole
+            // service is dead anyway
+        }
     }
 }

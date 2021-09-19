@@ -33,11 +33,16 @@ class ApiImpl : ApiV1
 
         const(Config) mergedConfig = mergeConfig(defaultConfig, data);
 
-        import app : isJobArgValid;
+        import validation : isJobArgValid, isCanvasArgValid;
 
         if (!isJobArgValid(mergedConfig.job))
         {
             throw new HTTPStatusException(HTTPStatus.badRequest, "Invalid job argument");
+        }
+
+        if (!isCanvasArgValid(mergedConfig.canvas))
+        {
+            throw new HTTPStatusException(HTTPStatus.badRequest, "Invalid canvas argument");
         }
 
         import vibe.core.task : Task;
@@ -54,9 +59,13 @@ class ApiImpl : ApiV1
 
         try
         {
-            renderingSucceeded = receiveTimeout(5.seconds,
+            receiveTimeout(5.seconds,
                     (immutable(string)[] filenames) {
                         response.output = filenames;
+                        renderingSucceeded = true;
+                    },
+                    (bool failed) {
+                        renderingSucceeded = !failed;
                     }
             );
         }

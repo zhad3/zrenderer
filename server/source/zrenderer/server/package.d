@@ -30,9 +30,10 @@ int main(string[] args)
         config = initializeConfig!(Config, usage)(args, helpWanted);
 
         import std.exception : enforce;
-        import app : isJobArgValid;
+        import validation : isJobArgValid, isCanvasArgValid;
 
         enforce!GetOptException(isJobArgValid(config.job), "job ids are not valid.");
+        enforce!GetOptException(isCanvasArgValid(config.canvas), "canvas is not valid.");
     }
     catch (GetOptException e)
     {

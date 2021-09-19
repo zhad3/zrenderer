@@ -18,6 +18,7 @@ struct RenderRequestData
     @optional Nullable!int headPalette;
     @optional Nullable!HeadDirection headdir;
     @optional Nullable!bool enableShadow;
+    @optional Nullable!string canvas;
     @optional Nullable!(uint[]) headgear;
     string[] job;
 }

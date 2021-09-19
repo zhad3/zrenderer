@@ -2,8 +2,10 @@ module app;
 import config : Config, Gender, HeadDirection;
 import luad.state : LuaState;
 import resource : ResourceManager, ResourceException;
+import draw : Canvas, canvasFromString;
 import resolver;
 import sprite;
+import validation;
 
 alias LogFunc = void delegate(string msg);
 
@@ -15,66 +17,6 @@ void createOutputDirectory(string outputDirectory) @safe
     {
         mkdirRecurse(outputDirectory);
     }
-}
-
-bool isJobArgValid(const(string)[] jobids) pure @safe
-{
-    bool isValid = true;
-
-    foreach (jobidstr; jobids)
-    {
-        import std.algorithm.searching : countUntil;
-        import std.string : representation;
-
-        auto rangeIndex = countUntil(jobidstr.representation, '-');
-
-        import std.conv : to, ConvException;
-
-        if (rangeIndex == 0)
-        {
-            isValid = false;
-            break;
-        }
-        else if (rangeIndex < 0)
-        {
-            try
-            {
-                jobidstr.to!uint;
-            }
-            catch (ConvException err)
-            {
-                isValid = false;
-                break;
-            }
-        }
-        else
-        {
-            if (rangeIndex + 1 >= jobidstr.length)
-            {
-                isValid = false;
-                break;
-            }
-
-            try
-            {
-                auto start = jobidstr[0 .. rangeIndex].to!uint;
-                auto end = jobidstr[rangeIndex + 1 .. $].to!uint;
-
-                if (end < start)
-                {
-                    isValid = false;
-                    break;
-                }
-            }
-            catch (ConvException err)
-            {
-                isValid = false;
-                break;
-            }
-        }
-    }
-
-    return isValid;
 }
 
 string[] run(immutable Config config, LogFunc log, LuaState L = null,
@@ -136,6 +78,8 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
     // A bad guess
     filenames.reserve(config.job.length);
 
+    immutable(Canvas) canvas = canvasFromString(config.canvas);
+
     foreach (jobidstr; config.job)
     {
         uint startJob;
@@ -170,7 +114,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
             {
                 import uniqueid : createUid;
 
-                outputFilename = createUid(jobid, config);
+                outputFilename = createUid(jobid, config, canvas);
             }
             else
             {
@@ -180,11 +124,6 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
             if (config.returnExistingFiles)
             {
                 string[] existingFiles = existingFilenames(outputFilename, config.outdir);
-
-                debug {
-                    import std.stdio : writeln;
-                    writeln(existingFiles);
-                }
 
                 if (existingFiles.length > 0)
                 {
@@ -245,7 +184,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
             }
 
             RawImage[] images = drawPlayer(sprites, config.action,
-                    (requestFrame < 0) ? uint.max : requestFrame, &sortIndexDelegate);
+                    (requestFrame < 0) ? uint.max : requestFrame, &sortIndexDelegate, canvas);
 
             if (isBaby(jobid))
             {
@@ -826,3 +765,4 @@ private string[] existingFilenames(const scope string filename, const scope stri
 
     return [];
 }
+

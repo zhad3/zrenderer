@@ -1,7 +1,7 @@
 module renderer;
 
 import sprite;
-import draw : Color, RawImage, DrawObject;
+import draw : Color, RawImage, DrawObject, Canvas;
 import linearalgebra : TransformMatrix, Box, Vector3, Matrix3, inverse, PI_180;
 import imageformats.png;
 
@@ -138,7 +138,8 @@ RawImage[] drawAction(scope Sprite sprite, uint action)
 
 alias sortDelegate = void delegate(ref int[] index, uint frame);
 
-RawImage[] drawPlayer(scope Sprite[] sprites, uint action, uint frame, sortDelegate sortDg)
+RawImage[] drawPlayer(scope Sprite[] sprites, uint action, uint frame,
+        sortDelegate sortDg, immutable(Canvas) canvas)
 {
     DrawObject[] drawobjects;
     drawobjects.reserve(sprites.length);
@@ -184,8 +185,8 @@ RawImage[] drawPlayer(scope Sprite[] sprites, uint action, uint frame, sortDeleg
         drawobjects ~= drawobject;
     }
 
-    const totalWidth = totalBoundingBox.width;
-    const totalHeight = totalBoundingBox.height;
+    const totalWidth = canvas != Canvas.init ? canvas.width : totalBoundingBox.width;
+    const totalHeight = canvas != Canvas.init ? canvas.height : totalBoundingBox.height;
 
     if (totalWidth == 0 || totalHeight == 0)
     {
@@ -194,7 +195,10 @@ RawImage[] drawPlayer(scope Sprite[] sprites, uint action, uint frame, sortDeleg
 
     RawImage[] outputImage = new RawImage[maxframes - startframe];
 
-    const offset = Vector3(totalBoundingBox.x1, totalBoundingBox.y1, 0);
+    const offset = Vector3(
+            canvas != Canvas.init ? -canvas.originx : totalBoundingBox.x1,
+            canvas != Canvas.init ? -canvas.originy : totalBoundingBox.y1,
+            0);
 
     import std.algorithm.sorting : makeIndex;
 
