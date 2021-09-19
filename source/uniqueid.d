@@ -30,6 +30,8 @@ private ubyte[] configToByteArray(uint jobid, immutable(Config) config) pure not
     buffer[36 .. 40] = nativeToLittleEndian(config.headdir.toInt());
     buffer[40 .. 44] = nativeToLittleEndian(config.enableShadow ? 1 : 0);
 
+    const li = 44; // last index
+
     import std.algorithm : min;
 
     const numheadgear = min(3, config.headgear.length);
@@ -38,9 +40,9 @@ private ubyte[] configToByteArray(uint jobid, immutable(Config) config) pure not
     for (; i < numheadgear; ++i)
     {
         const idx = i * 4;
-        buffer[(44 + idx) .. (44 + idx + 4)] = nativeToLittleEndian(config.headgear[i]);
+        buffer[(li + idx) .. (li + idx + 4)] = nativeToLittleEndian(config.headgear[i]);
     }
-    i = 44 + (i * 4+ 4);
+    i = li + (i * 4 + 4);
 
     return buffer[0 .. i];
 }
