@@ -1,0 +1,208 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "zrenderer API",
+    "version": "1.1",
+    "description": "API for the zrenderer service (https://github.com/zhad3/zrenderer)."
+  },
+  "paths": {
+    "/render": {
+      "summary": "Endpoint for requesting to render sprites",
+      "post": {
+        "requestBody": {
+          "$ref": "#/components/requestBodies/renderRequestBody"
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/200"
+          },
+          "400": {
+            "$ref": "#/components/responses/400"
+          },
+          "500": {
+            "$ref": "#/components/responses/500"
+          }
+        },
+        "operationId": "render",
+        "summary": "Send a request to render sprites"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "renderRequest": {
+        "required": [
+          "job"
+        ],
+        "type": "object",
+        "properties": {
+          "job": {
+            "description": "Job id(s) which should be rendered. Can contain multiple comma separated values as well as ranges (e.g. \"1001-1999\").",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "action": {
+            "format": "int32",
+            "description": "Action of the job which should be drawn.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "frame": {
+            "format": "int32",
+            "description": "Frame of the action which should be drawn. Set to -1 to draw all frames.",
+            "minimum": -1,
+            "type": "integer"
+          },
+          "gender": {
+            "description": "Gender of the player character. Possible values are: 1=male or 0=female.",
+            "enum": [
+              0,
+              1
+            ],
+            "format": "int32"
+          },
+          "head": {
+            "format": "int32",
+            "description": "Head id which should be used when drawing a player.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "outfit": {
+            "format": "int32",
+            "description": "The alternative outfit for player characters. Not all characters have alternative outfits. In these cases the default character will be rendered instead.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "headgear": {
+            "description": "Headgears which should be attached to the players head.",
+            "type": "array",
+            "items": {
+              "format": "int32",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "garment": {
+            "format": "int32",
+            "description": "Garment which should be attached to the players body.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "weapon": {
+            "format": "int32",
+            "description": "Weapon which should be attached to the players body.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "shield": {
+            "format": "int32",
+            "description": "Shield which should be attached to the players body.",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "bodyPalette": {
+            "format": "int32",
+            "description": "Palette for the body sprite. Set to -1 to use the standard palette.",
+            "minimum": -1,
+            "type": "integer"
+          },
+          "headPalette": {
+            "format": "int32",
+            "description": "Palette for the head sprite. Set to -1 to use the standard palette.",
+            "minimum": -1,
+            "type": "integer"
+          },
+          "headdir": {
+            "description": "Direction in which the head should turn. This is only applied to player sprites and only to the stand and sit action. Possible values are: 0=straight, 1=left, 2=right or 3=all. If 'all' is set then this direction system is ignored and all frames are interpreted like any other one.",
+            "enum": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "format": "int32"
+          },
+          "enableShadow": {
+            "description": "Draw shadow underneath the sprite.",
+            "type": "boolean"
+          },
+          "canvas": {
+            "description": "Sets a canvas onto which the sprite should be rendered. The canvas requires two options: its size and an origin point inside the canvas where the sprite should be placed. The format is as following: \<width>x\<height>±\<x>±\<y>. An origin point of +0+0 is equal to the top left corner. Example: 200x250+100+125. This would create a canvas and place the sprite in the center.",
+            "type": "string"
+          }
+        }
+      },
+      "commonError": {
+        "required": [
+          "statusMessage"
+        ],
+        "type": "object",
+        "properties": {
+          "statusMessage": {
+            "type": "string"
+          }
+        }
+      },
+      "renderResponse": {
+        "required": [
+          "output"
+        ],
+        "type": "object",
+        "properties": {
+          "output": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/renderResponse"
+            }
+          }
+        },
+        "description": "Ok"
+      },
+      "400": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/commonError"
+            }
+          }
+        },
+        "description": "Illegal input for operation."
+      },
+      "500": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/commonError"
+            }
+          }
+        },
+        "description": "Server Error"
+      }
+    },
+    "requestBodies": {
+      "renderRequestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/renderRequest"
+            }
+          }
+        },
+        "required": true
+      }
+    }
+  }
+}

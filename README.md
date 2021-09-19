@@ -48,6 +48,8 @@ A tool to render sprites from Ragnarok Online
             --enableShadow Draw shadow underneath the sprite. Default: true
             --singleframes Generate single frames of an animation. Default: false
    --enableUniqueFilenames If enabled the output filenames will be the checksum of input parameters. This will ensure that each request creates a filename that is unique to the input parameters and no overlapping for the same job occurs. Default: false
+     --returnExistingFiles Whether to return already existing sprites (true) or always re-render it (false). You should only use this option in conjuction with 'enableUniqueFilenames=true'. Default: false
+                  --canvas Sets a canvas onto which the sprite should be rendered. The canvas requires two options: its size and an origin point inside the canvas where the sprite should be placed. The format is as following: \<width>x\<height>±\<x>±\<y>. An origin point of +0+0 is equal to the top left corner. Example: 200x250+100+125. This would create a canvas and place the sprite in the center. Default: 
                    --hosts Hostnames of the server. Can contain multiple comma separated values. Default: localhost
                     --port Port of the server. Default: 11011
                  --logfile Log file to write to. E.g. /var/log/zrenderer.log. Leaving it empty will log to stdout. Default: 
@@ -72,12 +74,20 @@ Result: ![Sniper](examples/4012_17_2.png)
 **Render character with id 1 (Swordman), action 32 (Ready) with headgears 4 (Flower), 125 (Blush), garment 1 (Wings), weapon 1 (Sword), head 4 and gender female.**  
 `./zrenderer --job=1 --headgear=4,125 --garment=1 --weapon=2 --head=4 --gender=female --action=32`  
 Result: ![Swordman](examples/1_32.png)
+
+**Render character with id 0 (Novice), action 93 (Attack) with garment 1 (Wings), weapon 1 (Sword), head 15 and gender male.**  
+**and render the sprite in a canvas of size 200x200px placing it at x=75 and y=175.**  
+`./zrenderer --job=0 --head=15 --bodyPalette=1 --weapon=2 --garment=1 --gender=male --action=93 --canvas=200x200+75+175`  
+Result: ![Novice](examples/0_93.png)
 ## Server
 `./zrenderer-server -h`
 ```
 Same as CLI
 ```
 The server will listen on the _hosts_, bind to _port_ and write its logs to _logfile_.
+
+You can find the openApi specifications here: [OpenAPI specifications](https://github.com/zhad3/zrenderer/tree/main/server/api-spec).
+
 ### API
 The server will provide one API endpoint:
 
@@ -93,7 +103,7 @@ The endpoint accepts a request in json format with the following attributes:
 | job | Yes | string array |
 | action | No | number >= 0 |
 | frame | No | number |
-| gender | No | string |
+| gender | No | number: [0, 1]. 0=female, 1=male |
 | head | No | number >= 0 |
 | outfit | No | number >= 0 |
 | garment | No | number >= 0 |
@@ -101,7 +111,9 @@ The endpoint accepts a request in json format with the following attributes:
 | shield | No | number >= 0 |
 | bodypalette | No | number |
 | headpalette | No | number |
+| headdir | No | number: [0, 1, 2, 3]. 0=straight, 1=left, 2=right, 3=all |
 | enableshadow | No | boolean |
+| canvas | No | string |
 | headgear | No | number > 0 array |
 
 Note that the attribute names are identical to the options one and so is their function and meaning as well as defaults.
@@ -129,8 +141,8 @@ The following responses may be returned by the server
 ```json
 {
     "output": [
-        "output/1001_16_2.png",
-        "output/1005_16_2.png"
+        "output/1001/16-2.png",
+        "output/1005/16-2.png"
     ]
 }
 ```
