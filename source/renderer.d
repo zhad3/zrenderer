@@ -203,7 +203,6 @@ RawImage[] drawPlayer(scope Sprite[] sprites, uint action, uint frame,
     import std.algorithm.sorting : makeIndex;
 
     int[] sortIndex = new int[sprites.length];
-    makeIndex!"a.zIndex < b.zIndex"(sprites, sortIndex);
 
     for (auto i = startframe; i < maxframes; ++i)
     {
@@ -211,10 +210,7 @@ RawImage[] drawPlayer(scope Sprite[] sprites, uint action, uint frame,
         outputImage[i - startframe].height = totalHeight;
         outputImage[i - startframe].pixels = new Color[totalWidth * totalHeight];
 
-        if (i > startframe)
-        {
-            sortDg(sortIndex, cast(uint) i);
-        }
+        sortDg(sortIndex, cast(uint) i);
 
         for (auto d = 0; d < sortIndex.length; ++d)
         {

@@ -1,7 +1,8 @@
 module app;
+
 import config : Config, Gender, HeadDirection;
 import luad.state : LuaState;
-import resource : ResourceManager, ResourceException;
+import resource : ResourceManager, ResourceException, ImfResource;
 import draw : Canvas, canvasFromString;
 import resolver;
 import sprite;
@@ -134,9 +135,13 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
 
             Sprite[] sprites;
 
+            ImfResource bodyImf = null;
+
             if (isPlayer(jobid))
             {
                 sprites = processPlayer(jobid, log, config, resolve, resManager, L, animationInterval, requestFrame);
+
+                bodyImf = imfForJob(jobid, config.gender, resolve, resManager);
             }
             else
             {
@@ -161,10 +166,6 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
                 sprites ~= shadowsprite;
             }
 
-            import std.algorithm : sort;
-
-            sprites.sort!"a.zIndex < b.zIndex";
-
             import draw : RawImage;
             import renderer : drawPlayer;
 
@@ -172,11 +173,22 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
             {
                 int direction = config.action % 8;
 
-                import std.algorithm.iteration : filter, each;
-
-                sprites.filter!(a => a.type == SpriteType.garment)
-                    .each!(s => s.zIndex = zIndexForGarmentSprite(jobid, config.garment, config.action,
-                            frame, config.gender, direction, L));
+                foreach (sprite; sprites)
+                {
+                    if (sprite.type == SpriteType.garment)
+                    {
+                        sprite.zIndex = zIndexForGarmentSprite(jobid, config.garment, config.action,
+                                frame, config.gender, direction, L);
+                    }
+                    else if (sprite.type == SpriteType.playerhead && bodyImf !is null)
+                    {
+                        sprite.zIndex = zIndexForSprite(sprite, direction, config.action, frame, bodyImf);
+                    }
+                    else
+                    {
+                        sprite.zIndex = zIndexForSprite(sprite, direction);
+                    }
+                }
 
                 import std.algorithm.sorting : makeIndex;
 
@@ -422,7 +434,6 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
     try
     {
         bodysprite = loadBodySprite(jobid, config.outfit, config.gender, resolve, resManager);
-        bodysprite.zIndex = zIndexForSprite(bodysprite, direction);
     }
     catch (ResourceException err)
     {
@@ -443,7 +454,6 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
     try
     {
         headsprite = resManager.getSprite(headspritepath, SpriteType.playerhead);
-        headsprite.zIndex = zIndexForSprite(headsprite, direction);
         headsprite.parent(bodysprite);
         headsprite.headdir = config.headdir;
         sprites ~= headsprite;
@@ -462,13 +472,11 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
             {
                 auto weaponsprite = resManager.getSprite(weaponspritepath, SpriteType.weapon);
                 weaponsprite.typeOrder = 1;
-                weaponsprite.zIndex = zIndexForSprite(weaponsprite, direction);
                 sprites ~= weaponsprite;
 
                 // Weapon Slash
                 auto weaponslashsprite = resManager.getSprite(weaponspritepath ~ "_검광", SpriteType.weapon);
                 weaponslashsprite.typeOrder = 0;
-                weaponslashsprite.zIndex = zIndexForSprite(weaponslashsprite, direction);
                 sprites ~= weaponslashsprite;
             }
             catch (ResourceException err)
@@ -486,7 +494,6 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
             try
             {
                 auto shieldsprite = resManager.getSprite(shieldspritepath, SpriteType.shield);
-                shieldsprite.zIndex = zIndexForSprite(shieldsprite, direction);
                 sprites ~= shieldsprite;
             }
             catch (ResourceException err)
@@ -511,7 +518,6 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
                 {
                     auto headgearsprite = resManager.getSprite(headgearspritepath, SpriteType.accessory);
                     headgearsprite.typeOrder = h;
-                    headgearsprite.zIndex = zIndexForSprite(headgearsprite, direction);
                     headgearsprite.parent(bodysprite);
                     headgearsprite.headdir = config.headdir;
 
@@ -558,8 +564,6 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
             try
             {
                 auto garmentsprite = resManager.getSprite(garmentspritepath, SpriteType.garment);
-                garmentsprite.zIndex = zIndexForGarmentSprite(jobid, config.garment,
-                        config.action, config.frame < 0 ? 0 : config.frame, config.gender, direction, L);
                 garmentsprite.parent(bodysprite);
                 sprites ~= garmentsprite;
             }
@@ -764,5 +768,28 @@ private string[] existingFilenames(const scope string filename, const scope stri
     }
 
     return [];
+}
+
+private ImfResource imfForJob(uint jobid, const scope Gender gender,
+        Resolver resolve, ResourceManager resManager)
+{
+    const imfName = resolve.imfName(jobid, gender);
+
+    if (imfName.length > 0)
+    {
+        try
+        {
+            ImfResource imf = resManager.get!ImfResource(imfName);
+            imf.load();
+
+            return imf;
+        }
+        catch (ResourceException err)
+        {
+            // Fall through
+        }
+    }
+
+    return null;
 }
 

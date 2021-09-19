@@ -80,7 +80,8 @@ MonsterAction intToMonsterAction(uint action) pure nothrow @safe @nogc
     }
 }
 
-int zIndexForSprite(const scope Sprite sprite, int direction) pure nothrow @safe @nogc
+int zIndexForSprite(const scope Sprite sprite, int direction, uint action = uint.max, uint frame = uint.max,
+        ImfResource bodyImf = null) pure nothrow @safe @nogc
 {
     bool topLeft = direction >= 2 && direction <= 5;
 
@@ -91,6 +92,13 @@ int zIndexForSprite(const scope Sprite sprite, int direction) pure nothrow @safe
         case SpriteType.playerbody:
             return 15;
         case SpriteType.playerhead:
+            if (bodyImf !is null && action != uint.max && frame != uint.max)
+            {
+                if (bodyImf.priority(1, action, frame) == 1)
+                {
+                    return 14; // Before body
+                }
+            }
             return 20;
         case SpriteType.accessory:
             return 25 - (3 - sprite.typeOrder);
@@ -109,6 +117,13 @@ int zIndexForSprite(const scope Sprite sprite, int direction) pure nothrow @safe
         case SpriteType.playerbody:
             return 10;
         case SpriteType.playerhead:
+            if (bodyImf !is null && action != uint.max && frame != uint.max)
+            {
+                if (bodyImf.priority(1, action, frame) == 1)
+                {
+                    return 9; // Before body
+                }
+            }
             return 15;
         case SpriteType.accessory:
             return 20 - (3 - sprite.typeOrder);
