@@ -17,37 +17,35 @@ string createUid(uint jobid, immutable(Config) config, immutable(Canvas) canvas)
 
 private ubyte[] configToByteArray(uint jobid, immutable(Config) config, immutable(Canvas) canvas) pure nothrow @safe
 {
-    auto buffer = new ubyte[int.sizeof * 18];
+    immutable sz = int.sizeof;
+    auto buffer = new ubyte[sz * 20];
 
-    buffer[0 .. 4] = nativeToLittleEndian(jobid);
-    buffer[4 .. 8] = nativeToLittleEndian(config.gender.toInt());
-    buffer[8 .. 12] = nativeToLittleEndian(config.head);
-    buffer[12 .. 16] = nativeToLittleEndian(config.outfit);
-    buffer[16 .. 20] = nativeToLittleEndian(config.garment);
-    buffer[20 .. 24] = nativeToLittleEndian(config.weapon);
-    buffer[24 .. 28] = nativeToLittleEndian(config.shield);
-    buffer[28 .. 32] = nativeToLittleEndian(config.bodyPalette);
-    buffer[32 .. 36] = nativeToLittleEndian(config.headPalette);
-    buffer[36 .. 40] = nativeToLittleEndian(config.headdir.toInt());
-    buffer[40 .. 44] = nativeToLittleEndian(config.enableShadow ? 1 : 0);
-    buffer[44 .. 48] = nativeToLittleEndian(canvas.width);
-    buffer[48 .. 52] = nativeToLittleEndian(canvas.height);
-    buffer[52 .. 56] = nativeToLittleEndian(canvas.originx);
-    buffer[56 .. 60] = nativeToLittleEndian(canvas.originy);
+    auto i = 0;
 
-    const li = 60; // last index
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(jobid);
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.gender.toInt());
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.head);
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.outfit);
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.garment);
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.weapon);
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.shield);
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.bodyPalette);
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.headPalette);
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.headdir.toInt());
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.enableShadow ? 1 : 0);
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(canvas.width);
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(canvas.height);
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(canvas.originx);
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(canvas.originy);
 
     import std.algorithm : min;
 
-    const numheadgear = min(3, config.headgear.length);
+    const numheadgear = min(4, config.headgear.length);
 
-    long i = 0;
-    for (; i < numheadgear; ++i)
+    foreach (h; 0 .. numheadgear)
     {
-        const idx = i * 4;
-        buffer[(li + idx) .. (li + idx + 4)] = nativeToLittleEndian(config.headgear[i]);
+        buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.headgear[h]);
     }
-    i = li + (i * 4 + 4);
 
-    return buffer[0 .. i];
+    return buffer[0 .. (sz * i)];
 }
