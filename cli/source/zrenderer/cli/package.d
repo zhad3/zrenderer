@@ -2,6 +2,7 @@ module zrenderer.cli;
 
 import config : Config;
 import zconfig : initializeConfig, getConfigArguments;
+import logging : LogLevel, BasicLogger;
 
 enum usage = "A tool to render sprites from Ragnarok Online";
 
@@ -51,15 +52,15 @@ int main(string[] args)
         return 0;
     }
 
-    import app : run, createOutputDirectory, LogFunc;
+    import app : run, createOutputDirectory;
 
     createOutputDirectory(config.outdir);
 
-    void consoleLogger(string msg)
-    {
-        import std.stdio : writeln;
+    auto logger = BasicLogger.get();
 
-        writeln(msg);
+    void consoleLogger(LogLevel logLevel, string msg)
+    {
+        logger.log(logLevel,msg);
     }
 
     run(cast(immutable) config, &consoleLogger);

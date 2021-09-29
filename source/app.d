@@ -7,8 +7,7 @@ import draw : Canvas, canvasFromString;
 import resolver;
 import sprite;
 import validation;
-
-alias LogFunc = void delegate(string msg);
+import logging : LogLevel, LogDg;
 
 void createOutputDirectory(string outputDirectory) @safe
 {
@@ -20,7 +19,7 @@ void createOutputDirectory(string outputDirectory) @safe
     }
 }
 
-string[] run(immutable Config config, LogFunc log, LuaState L = null,
+string[] run(immutable Config config, LogDg log, LuaState L = null,
         ResourceManager resManager = null, Resolver resolve = null)
 {
     // Nothing to draw
@@ -40,7 +39,7 @@ string[] run(immutable Config config, LogFunc log, LuaState L = null,
         }
         catch (LuaErrorException err)
         {
-            log(err.msg);
+            log(LogLevel.critical, err.msg);
             return [];
         }
     }
@@ -58,7 +57,7 @@ string[] run(immutable Config config, LogFunc log, LuaState L = null,
         }
         catch (ResourceException err)
         {
-            log(err.msg);
+            log(LogLevel.critical, err.msg);
             return [];
         }
     }
@@ -71,7 +70,7 @@ string[] run(immutable Config config, LogFunc log, LuaState L = null,
     return process(config, log, L, resManager, resolve);
 }
 
-string[] process(immutable Config config, LogFunc log, LuaState L,
+string[] process(immutable Config config, LogDg log, LuaState L,
         ResourceManager resManager, Resolver resolve)
 {
     string[] filenames;
@@ -219,7 +218,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
                 }
                 catch (FileException err)
                 {
-                    log(err.msg);
+                    log(LogLevel.error, err.msg);
                     continue;
                 }
 
@@ -271,7 +270,7 @@ string[] process(immutable Config config, LogFunc log, LuaState L,
     return filenames;
 }
 
-Sprite[] processNonPlayer(uint jobid, LogFunc log, immutable Config config, Resolver resolve,
+Sprite[] processNonPlayer(uint jobid, LogDg log, immutable Config config, Resolver resolve,
         ResourceManager resManager, ref LuaState L, out float interval, ref int requestFrame)
 {
     bool overwriteFrame = false;
@@ -291,7 +290,7 @@ Sprite[] processNonPlayer(uint jobid, LogFunc log, immutable Config config, Reso
     }
     catch (ResourceException err)
     {
-        log(err.msg);
+        log(LogLevel.error, err.msg);
         return [];
     }
 
@@ -350,7 +349,7 @@ Sprite[] processNonPlayer(uint jobid, LogFunc log, immutable Config config, Reso
                 }
                 catch (ResourceException err)
                 {
-                    log(err.msg);
+                    log(LogLevel.warning, err.msg);
                 }
             }
         }
@@ -384,7 +383,7 @@ Sprite[] processNonPlayer(uint jobid, LogFunc log, immutable Config config, Reso
                     }
                     catch (ResourceException err)
                     {
-                        log(err.msg);
+                        log(LogLevel.warning, err.msg);
                     }
                 }
             }
@@ -416,7 +415,7 @@ Sprite[] processNonPlayer(uint jobid, LogFunc log, immutable Config config, Reso
     return sprites;
 }
 
-Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolver resolve,
+Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver resolve,
         ResourceManager resManager, ref LuaState L, out float interval, ref int requestFrame)
 {
     import std.exception : ErrnoException;
@@ -437,7 +436,7 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
     }
     catch (ResourceException err)
     {
-        log(err.msg);
+        log(LogLevel.error, err.msg);
         return [];
     }
 
@@ -460,7 +459,7 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
     }
     catch (ResourceException err)
     {
-        log(err.msg);
+        log(LogLevel.warning, err.msg);
     }
 
     if (config.weapon > 0)
@@ -481,7 +480,7 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
             }
             catch (ResourceException err)
             {
-                log(err.msg);
+                log(LogLevel.warning, err.msg);
             }
         }
     }
@@ -498,7 +497,7 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
             }
             catch (ResourceException err)
             {
-                log(err.msg);
+                log(LogLevel.warning, err.msg);
             }
         }
     }
@@ -542,7 +541,7 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
                 }
                 catch (ResourceException err)
                 {
-                    log(err.msg);
+                    log(LogLevel.warning, err.msg);
                 }
             }
         }
@@ -569,7 +568,7 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
             }
             catch (ResourceException err)
             {
-                log(err.msg);
+                log(LogLevel.warning, err.msg);
             }
         }
     }
@@ -591,7 +590,7 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
             }
             catch (ResourceException err)
             {
-                log(err.msg);
+                log(LogLevel.warning, err.msg);
             }
         }
     }
@@ -608,7 +607,7 @@ Sprite[] processPlayer(uint jobid, LogFunc log, immutable Config config, Resolve
             }
             catch (ResourceException err)
             {
-                log(err.msg);
+                log(LogLevel.warning, err.msg);
             }
         }
     }

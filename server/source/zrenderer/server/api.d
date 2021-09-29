@@ -7,7 +7,7 @@ import vibe.web.rest;
 import vibe.http.status;
 import vibe.http.common : HTTPStatusException;
 
-import zrenderer.server.requestdata : RenderRequestData;
+import zrenderer.server.requestdata : RenderRequestData, toString;
 import zrenderer.server.responsedata : RenderResponseData;
 
 @path("/")
@@ -28,8 +28,11 @@ class ApiImpl : ApiV1
     Json postRender(@viaBody() RenderRequestData data) @trusted
     {
         import vibe.core.core : runWorkerTaskH;
+        import vibe.core.log : logInfo;
         import zrenderer.server.worker : renderWorker;
         import std.typecons : Nullable;
+
+        logInfo(data.toString);
 
         const(Config) mergedConfig = mergeConfig(defaultConfig, data);
 

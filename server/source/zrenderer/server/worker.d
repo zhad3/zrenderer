@@ -1,6 +1,6 @@
 module zrenderer.server.worker;
 
-import vibe.core.log : logError;
+import vibe.core.log;
 import vibe.core.task : Task;
 import vibe.core.concurrency : send;
 
@@ -44,9 +44,35 @@ static void renderWorker(Task caller) nothrow
         }
 
         import app : run;
-        import vibe.core.log : logInfo;
+        import logging : LogLevel;
 
-        immutable(string)[] filenames = cast(immutable(string)[]) run(config, delegate(string) => logInfo(string), L, resManager, resolver);
+        void logger (LogLevel logLevel, string msg)
+        {
+            switch (logLevel)
+            {
+                case LogLevel.trace:
+                    logTrace(msg);
+                    break;
+                default:
+                case LogLevel.info:
+                    logInfo(msg);
+                    break;
+                case LogLevel.warning:
+                    logWarn(msg);
+                    break;
+                case LogLevel.error:
+                    logError(msg);
+                    break;
+                case LogLevel.critical:
+                    logCritical(msg);
+                    break;
+                case LogLevel.fatal:
+                    logFatal(msg);
+                    break;
+            }
+        }
+
+        immutable(string)[] filenames = cast(immutable(string)[]) run(config, &logger, L, resManager, resolver);
 
         send(caller, filenames);
     }
