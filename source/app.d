@@ -81,10 +81,6 @@ string[] process(immutable Config config, LogDg log, LuaState L,
 
     immutable(Canvas) canvas = canvasFromString(config.canvas);
 
-    import std.zip : ZipArchive;
-
-    ZipArchive archive;
-
     foreach (jobidstr; config.job)
     {
         uint startJob;
@@ -110,6 +106,10 @@ string[] process(immutable Config config, LogDg log, LuaState L,
             startJob = jobidstr[0 .. rangeIndex].to!uint;
             endJob = jobidstr[rangeIndex + 1 .. $].to!uint;
         }
+
+        import std.zip : ZipArchive;
+
+        ZipArchive archive;
 
         for (auto jobid = startJob; jobid <= endJob; ++jobid)
         {
