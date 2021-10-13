@@ -1,12 +1,16 @@
 module zrenderer.server;
 
-import zrenderer.server.api;
+import app : createOutputDirectory;
 import config : Config;
+import std.conv : ConvException;
+import std.getopt : GetOptException;
+import std.stdio : stderr;
 import vibe.core.core;
 import vibe.http.router;
 import vibe.http.server;
 import vibe.web.rest;
 import zconfig : initializeConfig, getConfigArguments;
+import zrenderer.server.api;
 
 enum usage = "A REST server to render sprites from Ragnarok Online";
 
@@ -19,8 +23,6 @@ int main(string[] args)
 
         args.insertInPlace(1, configArgs);
     }
-    import std.getopt : GetOptException;
-    import std.conv : ConvException;
 
     Config config;
     bool helpWanted = false;
@@ -37,15 +39,11 @@ int main(string[] args)
     }
     catch (GetOptException e)
     {
-        import std.stdio : stderr;
-
         stderr.writefln("Error parsing options: %s", e.msg);
         return 1;
     }
     catch (ConvException e)
     {
-        import std.stdio : stderr;
-
         stderr.writefln("Error parsing options: %s", e.msg);
         return 1;
     }
@@ -55,7 +53,7 @@ int main(string[] args)
         return 0;
     }
 
-    import app : createOutputDirectory;
+    defaultConfig = config;
 
     createOutputDirectory(config.outdir);
 
@@ -67,14 +65,14 @@ int main(string[] args)
     }
 
     auto router = new URLRouter;
-    router.registerRestInterface(new ApiImpl(config));
+
+    router.post("/render", &handleRenderRequest);
 
     auto settings = new HTTPServerSettings;
     settings.bindAddresses = config.hosts;
     settings.port = config.port;
     auto listener = listenHTTP(settings, router);
 
-    import std.stdio : writeln;
     import vibe.core.args : finalizeCommandLineOptions;
 
     finalizeCommandLineOptions(null);

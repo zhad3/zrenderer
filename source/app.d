@@ -1,13 +1,14 @@
 module app;
 
-import config : Config, Gender, HeadDirection;
-import luad.state : LuaState;
-import resource : ResourceManager, ResourceException, ImfResource;
+import config : Config, Gender, HeadDirection, OutputFormat;
 import draw : Canvas, canvasFromString;
-import resolver;
-import sprite;
-import validation;
 import logging : LogLevel, LogDg;
+import luad.state : LuaState;
+import resolver;
+import resource : ResourceManager, ResourceException, ImfResource;
+import sprite;
+import std.zip : ZipArchive;
+import validation;
 
 void createOutputDirectory(string outputDirectory) @safe
 {
@@ -80,6 +81,10 @@ string[] process(immutable Config config, LogDg log, LuaState L,
 
     immutable(Canvas) canvas = canvasFromString(config.canvas);
 
+    import std.zip : ZipArchive;
+
+    ZipArchive archive;
+
     foreach (jobidstr; config.job)
     {
         uint startJob;
@@ -123,7 +128,7 @@ string[] process(immutable Config config, LogDg log, LuaState L,
 
             if (config.returnExistingFiles)
             {
-                string[] existingFiles = existingFilenames(outputFilename, config.outdir);
+                string[] existingFiles = existingFilenames(outputFilename, config.outdir, config.outputFormat);
 
                 if (existingFiles.length > 0)
                 {
@@ -208,9 +213,17 @@ string[] process(immutable Config config, LogDg log, LuaState L,
             if (images.length > 0)
             {
                 import imageformats.png : saveToPngFile;
+                import std.file : mkdirRecurse, FileException, read;
                 import std.format : format;
                 import std.path : buildPath;
-                import std.file : mkdirRecurse, FileException;
+                import std.zip : ArchiveMember, CompressionMethod;
+
+                bool shouldPutInZip = config.outputFormat == OutputFormat.zip;
+
+                if (shouldPutInZip && archive is null)
+                {
+                    archive = new ZipArchive();
+                }
 
                 try
                 {
@@ -226,11 +239,17 @@ string[] process(immutable Config config, LogDg log, LuaState L,
                 {
                     foreach (i, image; images)
                     {
-                        auto filename = buildPath(config.outdir, outputFilename, format("%d-%d.png", config.action, i));
+                        immutable basefilename = format("%d-%d.png", config.action, i);
+                        auto filename = buildPath(config.outdir, outputFilename, basefilename);
 
                         saveToPngFile(image, filename);
 
                         filenames ~= filename;
+
+                        if (shouldPutInZip)
+                        {
+                            putFileInZip(archive, filename, basefilename);
+                        }
                     }
                 }
 
@@ -238,30 +257,57 @@ string[] process(immutable Config config, LogDg log, LuaState L,
                 {
                     import imageformats.png : saveToApngFile;
 
-                    auto filename = buildPath(config.outdir, outputFilename, format("%d.png", config.action));
+                    immutable basefilename = format("%d.png", config.action);
+                    auto filename = buildPath(config.outdir, outputFilename, basefilename);
 
                     saveToApngFile(images, filename, (25 * animationInterval).to!ushort);
 
                     filenames ~= filename;
+
+                    if (shouldPutInZip)
+                    {
+                        putFileInZip(archive, filename, basefilename);
+                    }
                 }
                 else
                 {
                     if (requestFrame < 0)
                     {
-                        auto filename = buildPath(config.outdir, outputFilename, format("%d.png", config.action));
+                        immutable basefilename = format("%d.png", config.action);
+                        auto filename = buildPath(config.outdir, outputFilename, basefilename);
 
                         saveToPngFile(images[0], filename);
 
                         filenames ~= filename;
+
+                        if (shouldPutInZip)
+                        {
+                            putFileInZip(archive, filename, basefilename);
+                        }
                     }
                     else
                     {
-                        auto filename = buildPath(config.outdir, outputFilename,
-                                format("%d-%d.png", config.action, requestFrame));
+                        immutable basefilename = format("%d-%d.png", config.action, requestFrame);
+                        auto filename = buildPath(config.outdir, outputFilename, basefilename);
                         saveToPngFile(images[0], filename);
 
                         filenames ~= filename;
+
+                        if (shouldPutInZip)
+                        {
+                            putFileInZip(archive, filename, basefilename);
+                        }
                     }
+                }
+
+                if (shouldPutInZip)
+                {
+                    auto filename = buildPath(config.outdir, outputFilename, outputFilename ~ ".zip");
+                    import std.file : write;
+
+                    write(filename, archive.build());
+
+                    filenames ~= filename;
                 }
             }
         }
@@ -739,7 +785,7 @@ private Sprite loadBodySprite(uint jobid, uint outfitid, const scope Gender gend
     return bodysprite;
 }
 
-private string[] existingFilenames(const scope string filename, const scope string outdir)
+private string[] existingFilenames(const scope string filename, const scope string outdir, OutputFormat outputFormat)
 {
     import std.path : buildPath;
     import std.file : exists;
@@ -790,5 +836,17 @@ private ImfResource imfForJob(uint jobid, const scope Gender gender,
     }
 
     return null;
+}
+
+private void putFileInZip(ZipArchive archive, const scope string filename, const scope string nameInZip)
+{
+    import std.file : read;
+    import std.zip : ArchiveMember, CompressionMethod;
+
+    auto member = new ArchiveMember();
+    member.compressionMethod = CompressionMethod.none;
+    member.name = nameInZip;
+    member.expandedData(cast(ubyte[]) read(filename));
+    archive.addMember(member);
 }
 

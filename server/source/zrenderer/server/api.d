@@ -1,88 +1,110 @@
 module zrenderer.server.api;
 
 import config;
+import std.datetime : seconds;
+import std.typecons : Nullable;
+import std.zip : ArchiveMember, ZipArchive;
+import validation : isJobArgValid, isCanvasArgValid;
+import vibe.core.concurrency : send, receiveTimeout, OwnerTerminated;
+import vibe.core.core : runWorkerTaskH;
+import vibe.core.log : logInfo;
+import vibe.core.task : Task;
 import vibe.data.json;
 import vibe.data.serialization;
-import vibe.web.rest;
-import vibe.http.status;
 import vibe.http.common : HTTPStatusException;
-
+import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
+import vibe.http.status;
+import vibe.web.rest;
 import zrenderer.server.requestdata : RenderRequestData, toString;
 import zrenderer.server.responsedata : RenderResponseData;
+import zrenderer.server.worker : renderWorker;
 
-@path("/")
-interface ApiV1
+__gshared Config defaultConfig;
+
+void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
 {
-    Json postRender(@viaBody() RenderRequestData data) @trusted;
-}
-
-class ApiImpl : ApiV1
-{
-    private Config defaultConfig;
-
-    this(Config defaultConfig)
+    if (req.json == Json.undefined)
     {
-        this.defaultConfig = defaultConfig;
+        throw new HTTPStatusException(HTTPStatus.badRequest, "Expected json input");
     }
 
-    Json postRender(@viaBody() RenderRequestData data) @trusted
+    RenderRequestData requestData = deserializeJson!RenderRequestData(req.json);
+
+    logInfo(requestData.toString);
+
+    const(Config) mergedConfig = mergeConfig(defaultConfig, requestData);
+
+    if (!isJobArgValid(mergedConfig.job))
     {
-        import vibe.core.core : runWorkerTaskH;
-        import vibe.core.log : logInfo;
-        import zrenderer.server.worker : renderWorker;
-        import std.typecons : Nullable;
+        throw new HTTPStatusException(HTTPStatus.badRequest, "Invalid job argument");
+    }
 
-        logInfo(data.toString);
+    if (!isCanvasArgValid(mergedConfig.canvas))
+    {
+        throw new HTTPStatusException(HTTPStatus.badRequest, "Invalid canvas argument");
+    }
 
-        const(Config) mergedConfig = mergeConfig(defaultConfig, data);
+    auto worker = runWorkerTaskH(&renderWorker, Task.getThis);
+    send(worker, cast(immutable Config) mergedConfig);
 
-        import validation : isJobArgValid, isCanvasArgValid;
+    RenderResponseData response;
+    bool renderingSucceeded = false;
 
-        if (!isJobArgValid(mergedConfig.job))
+    try
+    {
+        receiveTimeout(5.seconds,
+                (immutable(string)[] filenames) {
+                    response.output = filenames;
+                    renderingSucceeded = true;
+                },
+                (bool failed) {
+                    renderingSucceeded = !failed;
+                }
+        );
+    }
+    catch (OwnerTerminated e)
+    {
+        throw new HTTPStatusException(HTTPStatus.internalServerError, "Error during rendering process");
+    }
+
+    if (!renderingSucceeded)
+    {
+        throw new HTTPStatusException(HTTPStatus.internalServerError, "Error during rendering process");
+    }
+
+    import std.file : read;
+
+    if (mergedConfig.outputFormat == OutputFormat.zip)
+    {
+
+        if (response.output.length == 0)
         {
-            throw new HTTPStatusException(HTTPStatus.badRequest, "Invalid job argument");
+            throw new HTTPStatusException(HTTPStatus.noContent);
         }
 
-        if (!isCanvasArgValid(mergedConfig.canvas))
+        res.contentType("application/zip");
+        res.writeBody(cast(ubyte[]) read(response.output[$-1]));
+    }
+    else
+    {
+        import std.exception : ifThrown;
+
+        bool downloadImage = (req.query["downloadimage"].length >= 0).ifThrown(false);
+
+        if (downloadImage)
         {
-            throw new HTTPStatusException(HTTPStatus.badRequest, "Invalid canvas argument");
+            if (response.output.length == 0)
+            {
+                throw new HTTPStatusException(HTTPStatus.noContent);
+            }
+
+            res.contentType("image/png");
+            res.writeBody(cast(ubyte[]) read(response.output[0]));
         }
-
-        import vibe.core.task : Task;
-
-        auto worker = runWorkerTaskH(&renderWorker, Task.getThis);
-
-        import vibe.core.concurrency : send, receiveTimeout, OwnerTerminated;
-        import std.datetime : seconds;
-
-        send(worker, cast(immutable Config) mergedConfig);
-
-        RenderResponseData response;
-        bool renderingSucceeded = false;
-
-        try
+        else
         {
-            receiveTimeout(5.seconds,
-                    (immutable(string)[] filenames) {
-                        response.output = filenames;
-                        renderingSucceeded = true;
-                    },
-                    (bool failed) {
-                        renderingSucceeded = !failed;
-                    }
-            );
+            res.writeJsonBody(serializeToJson(response));
         }
-        catch (OwnerTerminated e)
-        {
-            throw new HTTPStatusException(HTTPStatus.internalServerError, "Error during rendering process");
-        }
-
-        if (!renderingSucceeded)
-        {
-            throw new HTTPStatusException(HTTPStatus.internalServerError, "Error during rendering process");
-        }
-
-        return serializeToJson(response);
     }
 }
 

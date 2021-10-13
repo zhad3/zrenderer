@@ -83,6 +83,11 @@ MonsterAction intToMonsterAction(uint action) pure nothrow @safe @nogc
 int zIndexForSprite(const scope Sprite sprite, int direction, uint action = uint.max, uint frame = uint.max,
         ImfResource bodyImf = null) pure nothrow @safe @nogc
 {
+    if (sprite.type == SpriteType.shadow)
+    {
+        return -1;
+    }
+
     bool topLeft = direction >= 2 && direction <= 5;
 
     if (topLeft)

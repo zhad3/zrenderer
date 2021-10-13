@@ -55,6 +55,12 @@ int toInt(HeadDirection headdir) pure nothrow @safe @nogc
     }
 }
 
+enum OutputFormat
+{
+    png,
+    zip
+}
+
 struct Config
 {
     @ConfigFile @Short("c") @Desc("Specific config file to use instead of the default.")
@@ -131,6 +137,10 @@ struct Config
             "<width>x<height>±<x>±<y>. An origin point of +0+0 is equal to the top left corner. " ~
             "Example: 200x250+100+125. This would create a canvas and place the sprite in the center.")
     string canvas = "";
+
+    @Desc("Defines the output format. Possible values are 'png' or 'zip'. If zip is chosen the zip will contain png " ~
+            "files.")
+    OutputFormat outputFormat = OutputFormat.png;
 
     @Section("server")
     {

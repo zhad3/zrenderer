@@ -2,7 +2,7 @@ module zrenderer.server.requestdata;
 
 import vibe.data.serialization : optional;
 import std.typecons : Nullable;
-import config : Gender, HeadDirection;
+import config : Gender, HeadDirection, OutputFormat;
 
 struct RenderRequestData
 {
@@ -19,6 +19,7 @@ struct RenderRequestData
     @optional Nullable!HeadDirection headdir;
     @optional Nullable!bool enableShadow;
     @optional Nullable!string canvas;
+    @optional Nullable!OutputFormat outputFormat;
     @optional Nullable!(uint[]) headgear;
     string[] job;
 }
@@ -97,6 +98,7 @@ string toString(const scope RenderRequestData data) pure @safe
     if (!data.headdir.isNull) putSingle(data.headdir.get, "headdir");
     if (!data.enableShadow.isNull) putSingle(data.enableShadow.get, "enableShadow");
     if (!data.canvas.isNull) putSingle(data.canvas.get, "canvas");
+    if (!data.outputFormat.isNull) putSingle(data.outputFormat.get, "outputFormat");
     if (!data.headgear.isNull) putArray(data.headgear.get, "headgear");
 
     app.put(" }");
