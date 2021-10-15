@@ -2,9 +2,9 @@
   "openapi": "3.0.3",
   "info": {
     "title": "zrenderer API",
-    "version": "1.1",
-    "description": "API for the zrenderer service (https://github.com/zhad3/zrenderer)."
-  },
+    "version": "1.2",
+    "description": "API for the zrenderer service (https://github.com/zhad3/zrenderer).",
+  }
   "paths": {
     "/render": {
       "summary": "Endpoint for requesting to render sprites",
@@ -12,6 +12,16 @@
         "requestBody": {
           "$ref": "#/components/requestBodies/renderRequestBody"
         },
+        "parameters": [
+          {
+            "deprecated": false,
+            "name": "downloadimage",
+            "description": "If provided, the request will return the first rendered image.",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": true
+          }
+        ],
         "responses": {
           "200": {
             "$ref": "#/components/responses/200"
@@ -30,6 +40,31 @@
   },
   "components": {
     "schemas": {
+      "commonError": {
+        "required": [
+          "statusMessage"
+        ],
+        "type": "object",
+        "properties": {
+          "statusMessage": {
+            "type": "string"
+          }
+        }
+      },
+      "renderResponse": {
+        "required": [
+          "output"
+        ],
+        "type": "object",
+        "properties": {
+          "output": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "renderRequest": {
         "required": [
           "job"
@@ -56,12 +91,12 @@
             "type": "integer"
           },
           "gender": {
+            "format": "int32",
             "description": "Gender of the player character. Possible values are: 1=male or 0=female.",
             "enum": [
               0,
               1
-            ],
-            "format": "int32"
+            ]
           },
           "head": {
             "format": "int32",
@@ -115,57 +150,42 @@
             "type": "integer"
           },
           "headdir": {
+            "format": "int32",
             "description": "Direction in which the head should turn. This is only applied to player sprites and only to the stand and sit action. Possible values are: 0=straight, 1=left, 2=right or 3=all. If 'all' is set then this direction system is ignored and all frames are interpreted like any other one.",
             "enum": [
               0,
               1,
               2,
               3
-            ],
-            "format": "int32"
+            ]
           },
           "enableShadow": {
             "description": "Draw shadow underneath the sprite.",
             "type": "boolean"
           },
           "canvas": {
-            "description": "Sets a canvas onto which the sprite should be rendered. The canvas requires two options: its size and an origin point inside the canvas where the sprite should be placed. The format is as following: <width>x<height>±<x>±<y>. An origin point of +0+0 is equal to the top left corner. Example: 200x250+100+125. This would create a canvas and place the sprite in the center.",
+            "description": "Sets a canvas onto which the sprite should be rendered. The canvas requires two options: its size and an origin point inside the canvas where the sprite should be placed. The format is as following: {width}x{height}±{x}±{y}. An origin point of +0+0 is equal to the top left corner. Example: 200x250+100+125. This would create a canvas and place the sprite in the center.",
             "type": "string"
           },
           "outputFormat": {
+            "format": "int32",
             "description": "Defines the output format. Possible values are 0=png or 1=zip. If zip is chosen the zip will contain png files.",
             "enum": [
               0,
               1
-            ],
-            "format": "int32"
+            ]
           }
         }
       },
-      "commonError": {
-        "required": [
-          "statusMessage"
-        ],
-        "type": "object",
-        "properties": {
-          "statusMessage": {
-            "type": "string"
-          }
-        }
+      "renderResponseZip": {
+        "format": "binary",
+        "description": "Returns application/zip.",
+        "type": "string"
       },
-      "renderResponse": {
-        "required": [
-          "output"
-        ],
-        "type": "object",
-        "properties": {
-          "output": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
+      "renderResponseImage": {
+        "format": "binary",
+        "description": "Returns image/png.",
+        "type": "string"
       }
     },
     "responses": {
@@ -174,6 +194,16 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/renderResponse"
+            }
+          },
+          "image/png": {
+            "schema": {
+              "$ref": "#/components/schemas/renderResponseImage"
+            }
+          },
+          "text/*": {
+            "schema": {
+              "$ref": "#/components/schemas/renderResponseZip"
             }
           }
         },

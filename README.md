@@ -50,6 +50,7 @@ A tool to render sprites from Ragnarok Online
    --enableUniqueFilenames If enabled the output filenames will be the checksum of input parameters. This will ensure that each request creates a filename that is unique to the input parameters and no overlapping for the same job occurs. Default: false
      --returnExistingFiles Whether to return already existing sprites (true) or always re-render it (false). You should only use this option in conjuction with 'enableUniqueFilenames=true'. Default: false
                   --canvas Sets a canvas onto which the sprite should be rendered. The canvas requires two options: its size and an origin point inside the canvas where the sprite should be placed. The format is as following: <width>x<height>±<x>±<y>. An origin point of +0+0 is equal to the top left corner. Example: 200x250+100+125. This would create a canvas and place the sprite in the center. Default: 
+            --outputFormat Defines the output format. Possible values are 'png' or 'zip'. If zip is chosen the zip will contain png files. Default: png
                    --hosts Hostnames of the server. Can contain multiple comma separated values. Default: localhost
                     --port Port of the server. Default: 11011
                  --logfile Log file to write to. E.g. /var/log/zrenderer.log. Leaving it empty will log to stdout. Default: 
@@ -103,25 +104,28 @@ The server will provide one API endpoint:
 #### Request
 The endpoint accepts a request in json format with the following attributes:
 
-| Attribute | Required | Type |
-| --- | --- | --- |
-| job | Yes | string array |
-| action | No | number >= 0 |
-| frame | No | number |
-| gender | No | number: [0, 1]. 0=female, 1=male |
-| head | No | number >= 0 |
-| outfit | No | number >= 0 |
-| garment | No | number >= 0 |
-| weapon | No | number >= 0 |
-| shield | No | number >= 0 |
-| bodypalette | No | number |
-| headpalette | No | number |
-| headdir | No | number: [0, 1, 2, 3]. 0=straight, 1=left, 2=right, 3=all |
-| enableshadow | No | boolean |
-| canvas | No | string |
-| headgear | No | number > 0 array |
+| Attribute | Type |
+| --- | --- |
+| job | **Required**. string array |
+| action | number >= 0 |
+| frame | number |
+| gender | number: [0, 1]. 0=female, 1=male |
+| head | number >= 0 |
+| outfit | number >= 0 |
+| garment | number >= 0 |
+| weapon | number >= 0 |
+| shield | number >= 0 |
+| bodypalette | number |
+| headpalette | number |
+| headdir | number: [0, 1, 2, 3]. 0=straight, 1=left, 2=right, 3=all |
+| enableshadow | boolean |
+| canvas | string |
+| headgear | number > 0 array |
+| outputFormat | number: [0, 1]. 0=png, 1=zip |
 
 Note that the attribute names are identical to the options one and so is their function and meaning as well as defaults.
+
+Additionally the server accepts one query parameter called `downloadimage`. If provided the first rendered image is returned directly instead of a json object.
 
 #### Response
 The following responses may be returned by the server
@@ -129,6 +133,9 @@ The following responses may be returned by the server
 | HTTP Status | Content-Type | Body | Description |
 | --- | --- | --- | --- |
 | 200 | application/json | `{"output": ["out/0/1-0.png", "out/1002/1.png", ...]}` | JSON Object with one attribute called "output". The output attribute contains an array of filenames of the generated sprites. |
+| 200 | image/png | `<image data>` | First rendered image is returned if the query parameter `downloadimage` is provided. |
+| 200 | application/zip | `<zip data>` | Generated zip file is returned if body parameter `"outputFormat": 1` is provided. |
+| 204 | application/json | `{"statusMessage": "<message>"}` | Returned when nothing was rendered. |
 | 400 | application/json | `{"statusMessage": "<error message>"}` | Returned when the request is invalid. |
 | 500 | application/json | `{"statusMessage": "<error message>"}`  | Returned when an error occurred. |
 
@@ -142,7 +149,12 @@ The following responses may be returned by the server
     "frame": 2
 }
 ```
-`200 OK`
+
+```
+200 OK
+Content-Type: application/json
+```
+
 ```json
 {
     "output": [
@@ -151,6 +163,22 @@ The following responses may be returned by the server
     ]
 }
 ```
+---
+`POST /render?downloadimage`
+
+```json
+{
+    "job": ["1001", "1005"],
+}
+```
+
+```
+200 OK
+Content-Type: image/png
+
+<image data for jobid 1001>
+```
+
 ## Docker
 You can use the pre-built and published images to run the server.
 
@@ -174,7 +202,7 @@ You will need to provide three directory/files:
 When building for the first time libpng and lua5.1 will be compiled which require a c-compiler.
 
 ## Linux
-`binutils`, `autoconf`, `libtool`, `zlib`, `openssl`.
+`gcc`, `binutils`, `autoconf`, `libtool`, `zlib`, `openssl`.
 
 When available choose the dev versions of the packages.
 
@@ -196,3 +224,4 @@ Depending on your system the command prompt will be available for x86 and x64. W
 
 ---
 All Ragnarok Online related media and content are copyrighted © by Gravity Co., Ltd & Lee Myoungjin(studio DTDS) and have all rights reserved.
+

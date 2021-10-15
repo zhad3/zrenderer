@@ -7,7 +7,7 @@ import std.zip : ArchiveMember, ZipArchive;
 import validation : isJobArgValid, isCanvasArgValid;
 import vibe.core.concurrency : send, receiveTimeout, OwnerTerminated;
 import vibe.core.core : runWorkerTaskH;
-import vibe.core.log : logInfo;
+import vibe.core.log : logInfo, logError;
 import vibe.core.task : Task;
 import vibe.data.json;
 import vibe.data.serialization;
@@ -25,7 +25,8 @@ void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
 {
     if (req.json == Json.undefined)
     {
-        throw new HTTPStatusException(HTTPStatus.badRequest, "Expected json input");
+        setErrorResponse(res, HTTPStatus.badRequest, "Expected json input");
+        return;
     }
 
     RenderRequestData requestData = deserializeJson!RenderRequestData(req.json);
@@ -36,12 +37,14 @@ void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
 
     if (!isJobArgValid(mergedConfig.job))
     {
-        throw new HTTPStatusException(HTTPStatus.badRequest, "Invalid job argument");
+        setErrorResponse(res, HTTPStatus.badRequest, "Invalid job element");
+        return;
     }
 
     if (!isCanvasArgValid(mergedConfig.canvas))
     {
-        throw new HTTPStatusException(HTTPStatus.badRequest, "Invalid canvas argument");
+        setErrorResponse(res, HTTPStatus.badRequest, "Invalid canvas element");
+        return;
     }
 
     auto worker = runWorkerTaskH(&renderWorker, Task.getThis);
@@ -64,26 +67,38 @@ void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
     }
     catch (OwnerTerminated e)
     {
-        throw new HTTPStatusException(HTTPStatus.internalServerError, "Error during rendering process");
+        setErrorResponse(res, HTTPStatus.internalServerError, "Rendering timed out / was aborted");
+        return;
     }
 
     if (!renderingSucceeded)
     {
-        throw new HTTPStatusException(HTTPStatus.internalServerError, "Error during rendering process");
+        setErrorResponse(res, HTTPStatus.internalServerError, "Error during rendering process");
+        return;
     }
 
-    import std.file : read;
+    import std.file : read, FileException;
 
     if (mergedConfig.outputFormat == OutputFormat.zip)
     {
 
         if (response.output.length == 0)
         {
-            throw new HTTPStatusException(HTTPStatus.noContent);
+            setErrorResponse(res, HTTPStatus.noContent, "Nothing rendered");
+            return;
         }
 
         res.contentType("application/zip");
-        res.writeBody(cast(ubyte[]) read(response.output[$-1]));
+        try
+        {
+            res.writeBody(cast(ubyte[]) read(response.output[$-1]));
+        }
+        catch (FileException err)
+        {
+            logError(err.message);
+            setErrorResponse(res, HTTPStatus.internalServerError, "Error when writing response");
+            return;
+        }
     }
     else
     {
@@ -95,17 +110,34 @@ void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
         {
             if (response.output.length == 0)
             {
-                throw new HTTPStatusException(HTTPStatus.noContent);
+                setErrorResponse(res, HTTPStatus.noContent, "Nothing rendered");
+                return;
             }
 
             res.contentType("image/png");
-            res.writeBody(cast(ubyte[]) read(response.output[0]));
+            try
+            {
+                res.writeBody(cast(ubyte[]) read(response.output[0]));
+            }
+            catch (FileException err)
+            {
+                logError(err.message);
+                setErrorResponse(res, HTTPStatus.internalServerError, "Error when writing response");
+                return;
+            }
         }
         else
         {
             res.writeJsonBody(serializeToJson(response));
         }
     }
+}
+
+void setErrorResponse(ref HTTPServerResponse res, HTTPStatus httpStatus, const scope string message = string.init)
+{
+    res.statusCode = httpStatus;
+    auto jsonResponse = Json(["statusMessage": Json(message)]);
+    res.writeJsonBody(jsonResponse);
 }
 
 const(Config) mergeConfig(Config defaultConfig, RenderRequestData data) pure nothrow @safe
