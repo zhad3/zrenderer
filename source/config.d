@@ -152,5 +152,8 @@ struct Config
 
         @Desc("Log file to write to. E.g. /var/log/zrenderer.log. Leaving it empty will log to stdout.")
         string logfile = "";
+
+        @Desc("Access tokens file. File in which access tokens will be stored in. If the file does not exist it will be generated.")
+        string tokenfile = "accesstokens.conf";
     }
 }

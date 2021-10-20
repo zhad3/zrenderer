@@ -3,8 +3,8 @@
   "info": {
     "title": "zrenderer API",
     "version": "1.2",
-    "description": "API for the zrenderer service (https://github.com/zhad3/zrenderer).",
-  }
+    "description": "API for the zrenderer service (https://github.com/zhad3/zrenderer)."
+  },
   "paths": {
     "/render": {
       "summary": "Endpoint for requesting to render sprites",
@@ -28,6 +28,9 @@
           },
           "400": {
             "$ref": "#/components/responses/400"
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
           },
           "500": {
             "$ref": "#/components/responses/500"
@@ -219,6 +222,16 @@
         },
         "description": "Illegal input for operation."
       },
+      "401": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/commonError"
+            }
+          }
+        },
+        "description": "Unauthorized."
+      },
       "500": {
         "content": {
           "application/json": {
@@ -240,6 +253,14 @@
           }
         },
         "required": true
+      }
+    },
+    "securitySchemes": {
+      "Access Token": {
+        "type": "apiKey",
+        "description": "Token required to make requests.",
+        "name": "accesstoken",
+        "in": "query"
       }
     }
   }

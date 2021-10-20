@@ -8,9 +8,9 @@ import std.stdio : stderr;
 import vibe.core.core;
 import vibe.http.router;
 import vibe.http.server;
-import vibe.web.rest;
 import zconfig : initializeConfig, getConfigArguments;
 import zrenderer.server.api;
+import zrenderer.server.auth : AccessToken, parseAccessTokensFile, generateToken;
 
 enum usage = "A REST server to render sprites from Ragnarok Online";
 
@@ -64,6 +64,11 @@ int main(string[] args)
         registerLogger(cast(shared) new FileLogger(config.logfile));
     }
 
+    if (!createOrLoadAccessTokens(config.tokenfile))
+    {
+        return 1;
+    }
+
     auto router = new URLRouter;
 
     router.post("/render", &handleRenderRequest);
@@ -91,4 +96,40 @@ int main(string[] args)
     listener.stopListening();
 
     return 0;
+}
+
+bool createOrLoadAccessTokens(const scope string tokenfilename)
+{
+    import std.file : exists, FileException;
+
+    if (!exists(tokenfilename))
+    {
+        auto token = generateToken();
+        auto description = "Auto-generated Admin Token";
+        auto props = "admin";
+
+        try
+        {
+            import std.string : join;
+            import std.stdio : File;
+
+            auto f = File(tokenfilename, "w");
+            f.writeln([token, description, props].join(','));
+        }
+        catch (FileException err)
+        {
+            stderr.writeln(err.message);
+            return false;
+        }
+
+        import std.stdio : writefln;
+
+        writefln("Created access token file including a randomly generated admin token: %s", token);
+    }
+    else
+    {
+        accessTokens = parseAccessTokensFile(tokenfilename);
+    }
+
+    return true;
 }

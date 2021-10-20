@@ -14,15 +14,24 @@ import vibe.data.serialization;
 import vibe.http.common : HTTPStatusException;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.http.status;
-import vibe.web.rest;
+import zrenderer.server.auth : AccessToken;
 import zrenderer.server.requestdata : RenderRequestData, toString;
 import zrenderer.server.responsedata : RenderResponseData;
 import zrenderer.server.worker : renderWorker;
 
 __gshared Config defaultConfig;
+__gshared AccessToken[string] accessTokens;
 
 void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
 {
+    immutable accessToken = checkAuth(req, accessTokens);
+
+    if (!accessToken.isValid)
+    {
+        setErrorResponse(res, HTTPStatus.unauthorized, "Missing or invalid access token");
+        return;
+    }
+
     if (req.json == Json.undefined)
     {
         setErrorResponse(res, HTTPStatus.badRequest, "Expected json input");
@@ -164,3 +173,25 @@ const(Config) mergeConfig(Config defaultConfig, RenderRequestData data) pure not
 
     return mergedConfig;
 }
+
+AccessToken checkAuth(HTTPServerRequest req, AccessToken[string] tokens) @safe
+{
+    import std.exception : ifThrown;
+
+    const tokenString = req.query["accesstoken"].ifThrown(string.init);
+
+    if (tokenString == string.init)
+    {
+        return AccessToken.init;
+    }
+
+    auto token = tokenString in tokens;
+
+    if (token is null)
+    {
+        return AccessToken.init;
+    }
+
+    return *token;
+}
+

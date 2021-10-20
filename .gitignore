@@ -17,3 +17,4 @@ zrenderer-test-*
 bin/
 zrenderer.conf
 output/
+accesstokens.conf

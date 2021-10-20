@@ -28,7 +28,7 @@ Please see [RESOURCES.md](https://github.com/zhad3/zrenderer/blob/main/RESOURCES
 ### CLI
 `./zrenderer -h`
 ```
-A tool to render sprites from Ragnarok Online
+A REST server to render sprites from Ragnarok Online
 -c                --config Specific config file to use instead of the default. Default: zrenderer.conf
 -o                --outdir Output directory where all rendered sprites will be saved to. Default: output
             --resourcepath Path to the resource directory. All resources are tried to be found within this directory. Default: 
@@ -54,9 +54,10 @@ A tool to render sprites from Ragnarok Online
                    --hosts Hostnames of the server. Can contain multiple comma separated values. Default: localhost
                     --port Port of the server. Default: 11011
                  --logfile Log file to write to. E.g. /var/log/zrenderer.log. Leaving it empty will log to stdout. Default: 
+               --tokenfile Access tokens file. File in which access tokens will be stored in. If the file does not exist it will be generated. Default: accesstokens.conf
 -h                  --help This help information.
 ```
-Options _hosts_, _port_ and _logfile_ are ignored for the CLI tool.
+Options _hosts_, _port_, _logfile_ and _tokenfile_ are ignored for the CLI tool.
 ### Example
 If not otherwise specified the requested sprites will be renderered as an APNG animation of the first action (0, Stand).
 
@@ -90,7 +91,10 @@ Result:
 ```
 Same as CLI
 ```
-The server will listen on the _hosts_, bind to _port_ and write its logs to _logfile_.
+The server will listen on the _hosts_, bind to _port_, write its logs to _logfile_ and read the access tokens from the _tokenfile_.
+
+When running the server for the first time and no access token file has been specified the server will automatically generate one
+and print the token to the console. You will need that token to make requests to the server.
 
 You can find the openApi specifications here: [OpenAPI specifications](https://github.com/zhad3/zrenderer/tree/main/server/api-spec).
 
@@ -100,6 +104,8 @@ The server will provide one API endpoint:
 | Endpoint | Method | Content-Type |
 | --- | --- | --- |
 | /render | POST | application/json |
+
+Each request requires an access token to be supplied via the query parameter `accesstoken`.
 
 #### Request
 The endpoint accepts a request in json format with the following attributes:
@@ -137,11 +143,12 @@ The following responses may be returned by the server
 | 200 | application/zip | `<zip data>` | Generated zip file is returned if body parameter `"outputFormat": 1` is provided. |
 | 204 | application/json | `{"statusMessage": "<message>"}` | Returned when nothing was rendered. |
 | 400 | application/json | `{"statusMessage": "<error message>"}` | Returned when the request is invalid. |
+| 401 | application/json | `{"statusMessage": "<error message>"}` | Returned when no valid access token is used for the request. |
 | 500 | application/json | `{"statusMessage": "<error message>"}`  | Returned when an error occurred. |
 
 #### Example
 
-`POST /render`
+`POST /render?accesstoken=<my_accesstoken>`
 ```json
 {
     "job": ["1001", "1005"],
@@ -164,7 +171,7 @@ Content-Type: application/json
 }
 ```
 ---
-`POST /render?downloadimage`
+`POST /render?accesstoken=<my_accesstoken>&downloadimage`
 
 ```json
 {
@@ -210,7 +217,16 @@ When available choose the dev versions of the packages.
 [Build Tools for Visual Studio](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019)
 
 ## Building
-From within the root directory of this project you can build the CLI and the Server.
+First clone the repository:  
+Run:  
+```
+git clone https://github.com/zhad3/zrenderer.git
+cd zrenderer
+git submodule update --init
+```
+
+Then you can build the CLI and the Server using `dub`.
+
 ### CLI
 Run `dub build :cli`.
 ### Server
