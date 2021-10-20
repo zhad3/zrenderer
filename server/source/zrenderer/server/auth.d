@@ -113,7 +113,7 @@ AccessToken parseAccessTokenLine(Tuple!(ulong, "index", char[], "value") lineTup
     return accesstoken;
 }
 
-bool validToken(const scope char[] token) pure nothrow @safe
+bool validToken(const scope char[] token) pure nothrow @safe @nogc
 {
     auto i = 0;
     foreach (c; token)

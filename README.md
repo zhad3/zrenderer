@@ -28,7 +28,7 @@ Please see [RESOURCES.md](https://github.com/zhad3/zrenderer/blob/main/RESOURCES
 ### CLI
 `./zrenderer -h`
 ```
-A REST server to render sprites from Ragnarok Online
+A tool to render sprites from Ragnarok Online
 -c                --config Specific config file to use instead of the default. Default: zrenderer.conf
 -o                --outdir Output directory where all rendered sprites will be saved to. Default: output
             --resourcepath Path to the resource directory. All resources are tried to be found within this directory. Default: 
