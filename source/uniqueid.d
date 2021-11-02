@@ -18,11 +18,13 @@ string createUid(uint jobid, immutable(Config) config, immutable(Canvas) canvas)
 private ubyte[] configToByteArray(uint jobid, immutable(Config) config, immutable(Canvas) canvas) pure nothrow @safe
 {
     immutable sz = int.sizeof;
-    auto buffer = new ubyte[sz * 20];
+    auto buffer = new ubyte[sz * 22];
 
     auto i = 0;
 
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(jobid);
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.action);
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.frame);
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.gender.toInt());
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.head);
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.outfit);
