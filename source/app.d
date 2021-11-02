@@ -380,7 +380,7 @@ Sprite[] processNonPlayer(uint jobid, LogDg log, immutable Config config, Resolv
                 try
                 {
                     auto weaponsprite = resManager.getSprite(weaponspritepath, SpriteType.weapon);
-                    weaponsprite.typeOrder = 1;
+                    weaponsprite.typeOrder = 0;
                     weaponsprite.zIndex = 2;
                     sprites ~= weaponsprite;
 
@@ -388,7 +388,7 @@ Sprite[] processNonPlayer(uint jobid, LogDg log, immutable Config config, Resolv
                     {
                         // Weapon Slash only for lancer & swordsman
                         auto weaponslashsprite = resManager.getSprite(weaponspritepath ~ "_검광", SpriteType.weapon);
-                        weaponslashsprite.typeOrder = 0;
+                        weaponslashsprite.typeOrder = 1;
                         weaponslashsprite.zIndex = 3;
                         sprites ~= weaponslashsprite;
                     }
@@ -516,12 +516,12 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
             try
             {
                 auto weaponsprite = resManager.getSprite(weaponspritepath, SpriteType.weapon);
-                weaponsprite.typeOrder = 1;
+                weaponsprite.typeOrder = 0;
                 sprites ~= weaponsprite;
 
                 // Weapon Slash
                 auto weaponslashsprite = resManager.getSprite(weaponspritepath ~ "_검광", SpriteType.weapon);
-                weaponslashsprite.typeOrder = 0;
+                weaponslashsprite.typeOrder = 1;
                 sprites ~= weaponslashsprite;
             }
             catch (ResourceException err)
