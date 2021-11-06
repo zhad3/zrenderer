@@ -76,9 +76,6 @@ string[] process(immutable Config config, LogDg log, LuaState L,
 {
     string[] filenames;
 
-    // A bad guess
-    filenames.reserve(config.job.length);
-
     immutable(Canvas) canvas = canvasFromString(config.canvas);
 
     import std.zip : ZipArchive;
@@ -282,7 +279,7 @@ string[] process(immutable Config config, LogDg log, LuaState L,
     if (config.outputFormat == OutputFormat.zip)
     {
         import std.path : buildPath;
-        import std.file : write, rmdir, FileException;
+        import std.file : write, rmdirRecurse, FileException;
 
         auto filename = buildPath(config.outdir, zipFilename ~ ".zip");
 
@@ -292,8 +289,8 @@ string[] process(immutable Config config, LogDg log, LuaState L,
 
         try
         {
-            // Delete the just created files because we only want the zip
-            rmdir(buildPath(config.outdir, zipFilename));
+            // Delete the just created directory because we only want the zip
+            rmdirRecurse(buildPath(config.outdir, zipFilename));
         }
         catch (FileException err)
         {

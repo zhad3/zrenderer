@@ -40,7 +40,7 @@ void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
 
     RenderRequestData requestData = deserializeJson!RenderRequestData(req.json);
 
-    logInfo(requestData.toString);
+    logInfo(requestData.toString ~ " -- " ~ "Token: " ~ accessToken.description);
 
     const(Config) mergedConfig = mergeConfig(defaultConfig, requestData);
 

@@ -101,8 +101,6 @@ string toString(const scope RenderRequestData data) pure @safe
     if (!data.outputFormat.isNull) putSingle(data.outputFormat.get, "outputFormat");
     if (!data.headgear.isNull) putArray(data.headgear.get, "headgear");
 
-    app.put(" }");
-
-    return app.data;
+    return app.data[0 .. $ - 2] ~ " }";
 }
 
