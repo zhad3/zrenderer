@@ -9,8 +9,9 @@ import vibe.core.core;
 import vibe.http.router;
 import vibe.http.server;
 import zconfig : initializeConfig, getConfigArguments;
-import zrenderer.server.api;
 import zrenderer.server.auth : AccessToken, parseAccessTokensFile, generateToken;
+import zrenderer.server.globals : defaultConfig, accessTokens;
+import zrenderer.server.routes : handleRenderRequest, getAccessTokens;
 
 enum usage = "A REST server to render sprites from Ragnarok Online";
 
@@ -72,6 +73,7 @@ int main(string[] args)
     auto router = new URLRouter;
 
     router.post("/render", &handleRenderRequest);
+    router.get("/admin/tokens", &getAccessTokens);
 
     auto settings = new HTTPServerSettings;
     settings.bindAddresses = config.hosts;

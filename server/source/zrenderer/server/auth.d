@@ -22,6 +22,7 @@ struct Capabilities
 {
     bool createAccessTokens;
     bool revokeAccessTokens;
+    bool readAccessTokens;
     bool readHealth;
     bool readStatistics;
 }
@@ -31,6 +32,29 @@ struct Properties
     uint maxJobIdsPerRequest = uint.max;
     uint maxRequestsPerHour = uint.max;
 }
+
+
+AccessToken checkAuth(HTTPServerRequest req, AccessToken[string] tokens) @safe
+{
+    import std.exception : ifThrown;
+
+    const tokenString = req.query["accesstoken"].ifThrown(string.init);
+
+    if (tokenString == string.init)
+    {
+        return AccessToken.init;
+    }
+
+    auto token = tokenString in tokens;
+
+    if (token is null)
+    {
+        return AccessToken.init;
+    }
+
+    return *token;
+}
+
 
 AccessToken[string] parseAccessTokensFile(const scope string filename)
 {

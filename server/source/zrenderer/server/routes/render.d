@@ -1,4 +1,4 @@
-module zrenderer.server.api;
+module zrenderer.server.routes.render;
 
 import config;
 import std.datetime : seconds;
@@ -14,13 +14,12 @@ import vibe.data.serialization;
 import vibe.http.common : HTTPStatusException;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.http.status;
-import zrenderer.server.auth : AccessToken;
+import zrenderer.server.auth : AccessToken, checkAuth;
+import zrenderer.server.globals : defaultConfig, accessTokens;
 import zrenderer.server.requestdata : RenderRequestData, toString;
 import zrenderer.server.responsedata : RenderResponseData;
+import zrenderer.server.routes : setErrorResponse;
 import zrenderer.server.worker : renderWorker;
-
-__gshared Config defaultConfig;
-__gshared AccessToken[string] accessTokens;
 
 void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
 {
@@ -142,13 +141,6 @@ void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
     }
 }
 
-void setErrorResponse(ref HTTPServerResponse res, HTTPStatus httpStatus, const scope string message = string.init)
-{
-    res.statusCode = httpStatus;
-    auto jsonResponse = Json(["statusMessage": Json(message)]);
-    res.writeJsonBody(jsonResponse);
-}
-
 const(Config) mergeConfig(Config defaultConfig, RenderRequestData data) pure nothrow @safe
 {
     Config mergedConfig = defaultConfig;
@@ -172,26 +164,5 @@ const(Config) mergeConfig(Config defaultConfig, RenderRequestData data) pure not
     }
 
     return mergedConfig;
-}
-
-AccessToken checkAuth(HTTPServerRequest req, AccessToken[string] tokens) @safe
-{
-    import std.exception : ifThrown;
-
-    const tokenString = req.query["accesstoken"].ifThrown(string.init);
-
-    if (tokenString == string.init)
-    {
-        return AccessToken.init;
-    }
-
-    auto token = tokenString in tokens;
-
-    if (token is null)
-    {
-        return AccessToken.init;
-    }
-
-    return *token;
 }
 
