@@ -61,6 +61,19 @@ enum OutputFormat
     zip
 }
 
+int toInt(OutputFormat format) pure nothrow @safe @nogc
+{
+    switch (format)
+    {
+        case OutputFormat.png:
+            return 0;
+        case OutputFormat.zip:
+            return 1;
+        default:
+            return 0;
+    }
+}
+
 struct Config
 {
     @ConfigFile @Short("c") @Desc("Specific config file to use instead of the default.")

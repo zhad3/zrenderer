@@ -81,6 +81,48 @@ string[] process(immutable Config config, LogDg log, LuaState L,
 
     immutable(Canvas) canvas = canvasFromString(config.canvas);
 
+    import std.zip : ZipArchive;
+
+    ZipArchive archive;
+    string zipFilename;
+
+    if (config.outputFormat == OutputFormat.zip)
+    {
+        archive = new ZipArchive();
+
+        if (config.enableUniqueFilenames)
+        {
+            import uniqueid : createUid;
+
+            zipFilename = createUid(uint.max, config, canvas);
+        }
+        else
+        {
+            import std.datetime.systime : Clock, SysTime;
+            import std.format : format;
+            try
+            {
+                auto now = Clock.currTime();
+                zipFilename = format("%04d-%02d-%02d-%02d-%02d", now.year, now.month, now.day, now.hour, now.minute);
+            }
+            catch (Exception err)
+            {
+                log(LogLevel.error, err.msg);
+                zipFilename = "nodate-result";
+            }
+        }
+
+        if (config.returnExistingFiles)
+        {
+            string[] existingFiles = existingFilenames(zipFilename, config.outdir, config.outputFormat);
+
+            if (existingFiles.length > 0)
+            {
+                return existingFiles;
+            }
+        }
+    }
+
     foreach (jobidstr; config.job)
     {
         uint startJob;
@@ -107,15 +149,11 @@ string[] process(immutable Config config, LogDg log, LuaState L,
             endJob = jobidstr[rangeIndex + 1 .. $].to!uint;
         }
 
-        import std.zip : ZipArchive;
-
-        ZipArchive archive;
-
         for (auto jobid = startJob; jobid <= endJob; ++jobid)
         {
             string outputFilename;
 
-            if (config.enableUniqueFilenames)
+            if (config.enableUniqueFilenames && config.outputFormat != OutputFormat.zip)
             {
                 import uniqueid : createUid;
 
@@ -126,13 +164,14 @@ string[] process(immutable Config config, LogDg log, LuaState L,
                 outputFilename = jobid.to!string;
             }
 
-            if (config.returnExistingFiles)
+            if (config.returnExistingFiles && config.outputFormat != OutputFormat.zip)
             {
                 string[] existingFiles = existingFilenames(outputFilename, config.outdir, config.outputFormat);
 
                 if (existingFiles.length > 0)
                 {
-                    return existingFiles;
+                    filenames ~= existingFiles;
+                    continue;
                 }
             }
 
@@ -220,11 +259,6 @@ string[] process(immutable Config config, LogDg log, LuaState L,
 
                 bool shouldPutInZip = config.outputFormat == OutputFormat.zip;
 
-                if (shouldPutInZip && archive is null)
-                {
-                    archive = new ZipArchive();
-                }
-
                 try
                 {
                     mkdirRecurse(buildPath(config.outdir, outputFilename));
@@ -248,7 +282,7 @@ string[] process(immutable Config config, LogDg log, LuaState L,
 
                         if (shouldPutInZip)
                         {
-                            putFileInZip(archive, filename, basefilename);
+                            putFileInZip(archive, filename, buildPath(outputFilename, basefilename));
                         }
                     }
                 }
@@ -266,7 +300,7 @@ string[] process(immutable Config config, LogDg log, LuaState L,
 
                     if (shouldPutInZip)
                     {
-                        putFileInZip(archive, filename, basefilename);
+                        putFileInZip(archive, filename, buildPath(outputFilename, basefilename));
                     }
                 }
                 else
@@ -282,7 +316,7 @@ string[] process(immutable Config config, LogDg log, LuaState L,
 
                         if (shouldPutInZip)
                         {
-                            putFileInZip(archive, filename, basefilename);
+                            putFileInZip(archive, filename, buildPath(outputFilename, basefilename));
                         }
                     }
                     else
@@ -295,22 +329,25 @@ string[] process(immutable Config config, LogDg log, LuaState L,
 
                         if (shouldPutInZip)
                         {
-                            putFileInZip(archive, filename, basefilename);
+                            putFileInZip(archive, filename, buildPath(outputFilename, basefilename));
                         }
                     }
                 }
-
-                if (shouldPutInZip)
-                {
-                    auto filename = buildPath(config.outdir, outputFilename, outputFilename ~ ".zip");
-                    import std.file : write;
-
-                    write(filename, archive.build());
-
-                    filenames ~= filename;
-                }
             }
         }
+    }
+
+    if (config.outputFormat == OutputFormat.zip)
+    {
+        import std.path : buildPath;
+        import std.file : write;
+
+        auto filename = buildPath(config.outdir, zipFilename ~ ".zip");
+
+
+        write(filename, archive.build());
+
+        filenames ~= filename;
     }
 
     return filenames;
@@ -789,6 +826,17 @@ private string[] existingFilenames(const scope string filename, const scope stri
 {
     import std.path : buildPath;
     import std.file : exists;
+
+    if (outputFormat == OutputFormat.zip)
+    {
+        const file = buildPath(outdir, filename ~ ".zip");
+        if (exists(file))
+        {
+            return [file];
+        }
+
+        return [];
+    }
 
     const path = buildPath(outdir, filename);
 

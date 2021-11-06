@@ -18,11 +18,22 @@ string createUid(uint jobid, immutable(Config) config, immutable(Canvas) canvas)
 private ubyte[] configToByteArray(uint jobid, immutable(Config) config, immutable(Canvas) canvas) pure nothrow @safe
 {
     immutable sz = int.sizeof;
-    auto buffer = new ubyte[sz * 22];
+    auto buffer = new ubyte[sz * 23];
 
     auto i = 0;
 
-    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(jobid);
+    if (jobid < uint.max)
+    {
+        buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(jobid);
+    }
+    else
+    {
+        import std.digest.crc : crc32Of;
+        import std.string : representation;
+        import std.array : join;
+
+        buffer[(sz * i) .. (sz * (++i))] = config.job.join(",").representation.crc32Of;
+    }
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.action);
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.frame);
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.gender.toInt());
@@ -35,6 +46,7 @@ private ubyte[] configToByteArray(uint jobid, immutable(Config) config, immutabl
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.headPalette);
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.headdir.toInt());
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.enableShadow ? 1 : 0);
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.outputFormat.toInt());
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(canvas.width);
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(canvas.height);
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(canvas.originx);
