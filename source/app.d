@@ -251,86 +251,28 @@ string[] process(immutable Config config, LogDg log, LuaState L,
 
             if (images.length > 0)
             {
-                import imageformats.png : saveToPngFile;
-                import std.file : mkdirRecurse, FileException, read;
-                import std.format : format;
-                import std.path : buildPath;
-                import std.zip : ArchiveMember, CompressionMethod;
+                import filehelper : storeImages;
 
-                bool shouldPutInZip = config.outputFormat == OutputFormat.zip;
+                auto fnames = storeImages(images, requestFrame, config, outputFilename, zipFilename, log,
+                        animationInterval, archive);
 
-                try
+                if (config.outputFormat != OutputFormat.zip)
                 {
-                    mkdirRecurse(buildPath(config.outdir, outputFilename));
+                    filenames ~= fnames;
                 }
-                catch (FileException err)
+                else if (fnames.length > 0)
                 {
-                    log(LogLevel.error, err.msg);
-                    continue;
-                }
+                    // Delete the just created files because we only want the zip
+                    import std.file : rmdirRecurse, FileException;
+                    import std.path : dirName;
 
-                if (config.singleframes)
-                {
-                    foreach (i, image; images)
+                    try
                     {
-                        immutable basefilename = format("%d-%d.png", config.action, i);
-                        auto filename = buildPath(config.outdir, outputFilename, basefilename);
-
-                        saveToPngFile(image, filename);
-
-                        filenames ~= filename;
-
-                        if (shouldPutInZip)
-                        {
-                            putFileInZip(archive, filename, buildPath(outputFilename, basefilename));
-                        }
+                        rmdirRecurse(dirName(fnames[0]));
                     }
-                }
-
-                if (images.length > 1)
-                {
-                    import imageformats.png : saveToApngFile;
-
-                    immutable basefilename = format("%d.png", config.action);
-                    auto filename = buildPath(config.outdir, outputFilename, basefilename);
-
-                    saveToApngFile(images, filename, (25 * animationInterval).to!ushort);
-
-                    filenames ~= filename;
-
-                    if (shouldPutInZip)
+                    catch (FileException err)
                     {
-                        putFileInZip(archive, filename, buildPath(outputFilename, basefilename));
-                    }
-                }
-                else
-                {
-                    if (requestFrame < 0)
-                    {
-                        immutable basefilename = format("%d.png", config.action);
-                        auto filename = buildPath(config.outdir, outputFilename, basefilename);
-
-                        saveToPngFile(images[0], filename);
-
-                        filenames ~= filename;
-
-                        if (shouldPutInZip)
-                        {
-                            putFileInZip(archive, filename, buildPath(outputFilename, basefilename));
-                        }
-                    }
-                    else
-                    {
-                        immutable basefilename = format("%d-%d.png", config.action, requestFrame);
-                        auto filename = buildPath(config.outdir, outputFilename, basefilename);
-                        saveToPngFile(images[0], filename);
-
-                        filenames ~= filename;
-
-                        if (shouldPutInZip)
-                        {
-                            putFileInZip(archive, filename, buildPath(outputFilename, basefilename));
-                        }
+                        log(LogLevel.warning, "Couldn't delete directory: " ~ err.msg);
                     }
                 }
             }
@@ -340,14 +282,23 @@ string[] process(immutable Config config, LogDg log, LuaState L,
     if (config.outputFormat == OutputFormat.zip)
     {
         import std.path : buildPath;
-        import std.file : write;
+        import std.file : write, rmdir, FileException;
 
         auto filename = buildPath(config.outdir, zipFilename ~ ".zip");
-
 
         write(filename, archive.build());
 
         filenames ~= filename;
+
+        try
+        {
+            // Delete the just created files because we only want the zip
+            rmdir(buildPath(config.outdir, zipFilename));
+        }
+        catch (FileException err)
+        {
+            log(LogLevel.warning, "Couldn't delete directory: " ~ err.msg);
+        }
     }
 
     return filenames;
@@ -884,17 +835,5 @@ private ImfResource imfForJob(uint jobid, const scope Gender gender,
     }
 
     return null;
-}
-
-private void putFileInZip(ZipArchive archive, const scope string filename, const scope string nameInZip)
-{
-    import std.file : read;
-    import std.zip : ArchiveMember, CompressionMethod;
-
-    auto member = new ArchiveMember();
-    member.compressionMethod = CompressionMethod.none;
-    member.name = nameInZip;
-    member.expandedData(cast(ubyte[]) read(filename));
-    archive.addMember(member);
 }
 
