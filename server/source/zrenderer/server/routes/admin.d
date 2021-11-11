@@ -79,12 +79,7 @@ void postAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
             scope (exit)
                 tokenfile.unlock();
 
-            auto newToken = accessTokens.generateAccessToken();
-            newToken = mergeStruct(newToken, tokenData);
-
-            import std.stdio : writeln;
-            writeln(tokenData);
-            writeln(newToken);
+            auto newToken = mergeStruct(accessTokens.generateAccessToken(), tokenData);
 
             accessTokens.storeToken(newToken);
             tokenfile.write(accessTokens.serialize());
