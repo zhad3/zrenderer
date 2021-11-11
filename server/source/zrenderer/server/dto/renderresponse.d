@@ -1,4 +1,4 @@
-module zrenderer.server.responsedata;
+module zrenderer.server.dto.renderresponse;
 
 struct RenderResponseData
 {

@@ -15,9 +15,8 @@ import vibe.http.common : HTTPStatusException;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.http.status;
 import zrenderer.server.auth : AccessToken, checkAuth;
+import zrenderer.server.dto : RenderRequestData, RenderResponseData, toString;
 import zrenderer.server.globals : defaultConfig, accessTokens;
-import zrenderer.server.requestdata : RenderRequestData, toString;
-import zrenderer.server.responsedata : RenderResponseData;
 import zrenderer.server.routes : setErrorResponse;
 import zrenderer.server.worker : renderWorker;
 

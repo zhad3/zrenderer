@@ -1,4 +1,4 @@
-module zrenderer.server.requestdata;
+module zrenderer.server.dto.renderrequest;
 
 import vibe.data.serialization : optional;
 import std.typecons : Nullable;

@@ -4,7 +4,7 @@ import vibe.core.log;
 import vibe.core.task : Task;
 import vibe.core.concurrency : send;
 
-import zrenderer.server.requestdata : RenderRequestData;
+import zrenderer.server.dto : RenderRequestData;
 import config : Config;
 import resource : ResourceManager, ResourceException;
 import resolver : Resolver;
