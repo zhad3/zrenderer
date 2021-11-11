@@ -1,15 +1,16 @@
 module zrenderer.server.auth;
 
-import vibe.core.log : logWarn;
+import vibe.core.log : logWarn, logError;
 import vibe.http.server : HTTPServerRequest;
 
-import std.typecons : Tuple;
+import std.typecons : Tuple, Nullable;
 
 private immutable TOKEN_LENGTH = 32;
 private auto TOKEN_CHARACTERS = cast(immutable ubyte[]) "0123456789abcdefghijklmnopqrstuvwxyz";
 
 struct AccessToken
 {
+    uint id;
     string token;
     string description;
     bool isValid;
@@ -29,12 +30,73 @@ struct Capabilities
 
 struct Properties
 {
-    uint maxJobIdsPerRequest = uint.max;
-    uint maxRequestsPerHour = uint.max;
+    int maxJobIdsPerRequest = -1;
+    int maxRequestsPerHour = -1;
 }
 
+struct AccessTokenDB
+{
+    int lastId = -1;
+    AccessToken[string] tokenMap;
+    AccessToken[uint] idMap;
 
-AccessToken checkAuth(HTTPServerRequest req, AccessToken[string] tokens) @safe
+    Nullable!AccessToken getByToken(const scope string accessToken) pure nothrow @safe @nogc
+    {
+        auto token = accessToken in tokenMap;
+        if (token is null)
+        {
+            return Nullable!AccessToken.init;
+        }
+        return Nullable!AccessToken(*token);
+    }
+
+    Nullable!AccessToken getById(uint id) pure nothrow @safe @nogc
+    {
+        auto token = id in idMap;
+        if (token is null)
+        {
+            return Nullable!AccessToken.init;
+        }
+        return Nullable!AccessToken(*token);
+    }
+
+    void storeToken(AccessToken token) nothrow @safe
+    {
+        if (token.id > lastId)
+        {
+            lastId = token.id;
+        }
+        tokenMap[token.token] = token;
+        idMap[token.id] = token;
+    }
+
+    AccessToken generateAccessToken() nothrow @safe
+    {
+        AccessToken token;
+
+        token.id = ++lastId;
+        token.token = generateToken();
+
+        return token;
+    }
+
+    string serialize() @safe
+    {
+        import std.algorithm : map, sort;
+        import std.array : array, join;
+        import std.ascii : newline;
+        import std.conv : to;
+
+        return lastId.to!string ~ newline ~
+            tokenMap.byValue()
+            .array
+            .sort!((a, b) => a.id < b.id)
+            .map!(token => serializeAccessToken(token))
+            .join(newline);
+    }
+}
+
+Nullable!AccessToken checkAuth(HTTPServerRequest req, AccessTokenDB tokens) @safe
 {
     import std.exception : ifThrown;
 
@@ -42,43 +104,72 @@ AccessToken checkAuth(HTTPServerRequest req, AccessToken[string] tokens) @safe
 
     if (tokenString == string.init)
     {
-        return AccessToken.init;
+        return Nullable!AccessToken.init;
     }
 
-    auto token = tokenString in tokens;
-
-    if (token is null)
-    {
-        return AccessToken.init;
-    }
-
-    return *token;
+    return tokens.getByToken(tokenString);
 }
 
-
-AccessToken[string] parseAccessTokensFile(const scope string filename)
+AccessTokenDB parseAccessTokensFile(const scope string filename)
 {
-    AccessToken[string] accessTokens;
+    AccessTokenDB tokenDB;
 
     bool foundAdmin = false;
     int adminCount = 0;
 
     try
     {
-        import std.stdio : File;
         import std.algorithm.iteration : each, map, fold, filter, cache;
+        import std.conv : to, ConvException;
         import std.range : enumerate;
+        import std.stdio : File;
 
         auto file = File(filename, "r");
+        string lastId = file.readln();
+
+        try
+        {
+            import std.ascii : newline;
+
+            if (lastId.length <= newline.length)
+            {
+                throw new ConvException("Empty last id.");
+            }
+            tokenDB.lastId = lastId[0 .. $ - newline.length].to!uint(10);
+        }
+        catch (ConvException err)
+        {
+            logError("AccessToken: Invalid token file. Couldn't read first line for 'lastId'. " ~
+                    "The server will continue to start but no access will be possible! " ~
+                    "Access tokens file requires manual fixing! %s", err.msg);
+            return tokenDB;
+        }
+
         file.byLine()
             .enumerate
             .map!(parseAccessTokenLine)
             .cache
             .filter!(token => token.isValid)
             .each!((token) {
-                if (token.token !in accessTokens && (!token.isAdmin || !foundAdmin))
+                bool tokenDoesntExist = token.token !in tokenDB.tokenMap;
+                bool idDoesntExist = token.id !in tokenDB.idMap;
+                if (!tokenDoesntExist)
                 {
-                    accessTokens[token.token] = token;
+                    logWarn("AccessToken: Duplicate token: %s. Token will be ignored.", token.token);
+                }
+                if (!idDoesntExist)
+                {
+                    logWarn("AccessToken: Duplicate id: %s. Token will be ignored.", token.token);
+                }
+                if (token.id > tokenDB.lastId)
+                {
+                    logWarn("AccessToken: Found token id (%d) greater than lastId (%d)! " ~
+                        "Will set lastId to this higher id.", token.id, tokenDB.lastId);
+                    tokenDB.lastId = token.id;
+                }
+                if (tokenDoesntExist && idDoesntExist && (!token.isAdmin || !foundAdmin))
+                {
+                    tokenDB.storeToken(token);
                 }
                 if (token.isAdmin)
                 {
@@ -98,7 +189,7 @@ AccessToken[string] parseAccessTokensFile(const scope string filename)
                 "Only the first admin token will be enabled.", adminCount);
     }
 
-    return accessTokens;
+    return tokenDB;
 }
 
 AccessToken parseAccessTokenLine(Tuple!(ulong, "index", char[], "value") lineTuple) @safe
@@ -116,6 +207,19 @@ AccessToken parseAccessTokenLine(Tuple!(ulong, "index", char[], "value") lineTup
             switch (index)
             {
             case 0:
+                import std.conv : to, ConvException;
+
+                try
+                {
+                    accesstoken.id = value.to!uint;
+                }
+                catch (ConvException err)
+                {
+                    logWarn("AccessToken (line:%d): Encountered invalid id: %s", lineNumber, value);
+                    return No.each;
+                }
+                break;
+            case 1:
                 if (!validToken(value))
                 {
                     logWarn("AccessToken (line:%d): Encountered invalid token: %s", lineNumber, value);
@@ -123,7 +227,7 @@ AccessToken parseAccessTokenLine(Tuple!(ulong, "index", char[], "value") lineTup
                 }
                 accesstoken.token = value.dup;
                 break;
-            case 1:
+            case 2:
                 accesstoken.description = value.dup;
                 accesstoken.isValid = true;
                 break;
@@ -255,4 +359,61 @@ private void setPropertyOnAccessToken(const long lineNumber, const scope char[] 
             logWarn("AccessToken (line:%d): Unknown property: %s", lineNumber, key);
         }
     }
+}
+
+string serializeAccessToken(const scope AccessToken accessToken) @safe
+{
+    import std.array : appender;
+    import std.format : formattedWrite;
+
+    auto app = appender!string;
+
+    app.formattedWrite("%u,%s,%s,", accessToken.id, accessToken.token, accessToken.description);
+
+    if (accessToken.isAdmin)
+    {
+        app.put("admin,");
+    }
+
+    foreach (memberName; __traits(allMembers, Capabilities))
+    {
+        import std.traits : isBoolean;
+
+        alias member = __traits(getMember, accessToken.capabilities, memberName);
+        static if (isBoolean!(typeof(member)))
+        {
+            if (__traits(getMember, accessToken.capabilities, memberName) == true)
+            {
+                app.put(memberName ~ ",");
+            }
+        }
+    }
+
+    immutable Properties defaultProperties;
+    foreach (memberName; __traits(allMembers, Properties))
+    {
+        import std.traits : isNumeric;
+
+        alias member = __traits(getMember, accessToken.properties, memberName);
+        static if (isNumeric!(typeof(member)))
+        {
+            if (__traits(getMember, accessToken.properties, memberName) != __traits(getMember, defaultProperties, memberName))
+            {
+                import std.conv : to, ConvException;
+
+                try
+                {
+                    app.formattedWrite("%s=%s,", memberName,
+                            (__traits(getMember, accessToken.properties, memberName)).to!string);
+                }
+                catch (ConvException err)
+                {
+                    // This should never happen
+                    logWarn("AccessToken: Couldn't serialize access token (%s). Error: %s.", accessToken.id, err
+                            .msg);
+                }
+            }
+        }
+    }
+    return app.data[0 .. $ - 1]; // Cut of trailing comma
 }

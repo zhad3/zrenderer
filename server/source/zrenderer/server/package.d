@@ -9,9 +9,9 @@ import vibe.core.core;
 import vibe.http.router;
 import vibe.http.server;
 import zconfig : initializeConfig, getConfigArguments;
-import zrenderer.server.auth : AccessToken, parseAccessTokensFile, generateToken;
+import zrenderer.server.auth;
 import zrenderer.server.globals : defaultConfig, accessTokens;
-import zrenderer.server.routes : handleRenderRequest, getAccessTokens;
+import zrenderer.server.routes : handleRenderRequest, getAccessTokens, postAccessToken;
 
 enum usage = "A REST server to render sprites from Ragnarok Online";
 
@@ -74,6 +74,7 @@ int main(string[] args)
 
     router.post("/render", &handleRenderRequest);
     router.get("/admin/tokens", &getAccessTokens);
+    router.post("/admin/tokens", &postAccessToken);
 
     auto settings = new HTTPServerSettings;
     settings.bindAddresses = config.hosts;
@@ -106,9 +107,10 @@ bool createOrLoadAccessTokens(const scope string tokenfilename)
 
     if (!exists(tokenfilename))
     {
-        auto token = generateToken();
-        auto description = "Auto-generated Admin Token";
-        auto props = "admin";
+
+        AccessToken accessToken = accessTokens.generateAccessToken();
+        accessToken.isAdmin = true;
+        accessToken.description = "Auto-generated Admin Token";
 
         try
         {
@@ -116,7 +118,8 @@ bool createOrLoadAccessTokens(const scope string tokenfilename)
             import std.stdio : File;
 
             auto f = File(tokenfilename, "w");
-            f.writeln([token, description, props].join(','));
+            f.writeln(accessTokens.lastId);
+            f.writeln(serializeAccessToken(accessToken));
         }
         catch (FileException err)
         {
@@ -126,7 +129,8 @@ bool createOrLoadAccessTokens(const scope string tokenfilename)
 
         import std.stdio : writefln;
 
-        writefln("Created access token file including a randomly generated admin token: %s", token);
+        writefln("Created access token file including a randomly generated admin token: %s", accessToken.token);
+        accessTokens.storeToken(accessToken);
     }
     else
     {

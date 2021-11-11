@@ -17,14 +17,14 @@ import vibe.http.status;
 import zrenderer.server.auth : AccessToken, checkAuth;
 import zrenderer.server.dto : RenderRequestData, RenderResponseData, toString;
 import zrenderer.server.globals : defaultConfig, accessTokens;
-import zrenderer.server.routes : setErrorResponse;
+import zrenderer.server.routes : setErrorResponse, mergeStruct;
 import zrenderer.server.worker : renderWorker;
 
 void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
 {
     immutable accessToken = checkAuth(req, accessTokens);
 
-    if (!accessToken.isValid)
+    if (accessToken.isNull() || !accessToken.get.isValid)
     {
         setErrorResponse(res, HTTPStatus.unauthorized, "Missing or invalid access token");
         return;
@@ -38,9 +38,9 @@ void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
 
     RenderRequestData requestData = deserializeJson!RenderRequestData(req.json);
 
-    logInfo(requestData.toString ~ " -- " ~ "Token: " ~ accessToken.description);
+    logInfo(requestData.toString ~ " -- " ~ "Token: " ~ accessToken.get.description);
 
-    const(Config) mergedConfig = mergeConfig(defaultConfig, requestData);
+    const(Config) mergedConfig = mergeStruct(defaultConfig, requestData);
 
     if (!isJobArgValid(mergedConfig.job))
     {
@@ -138,30 +138,5 @@ void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
             res.writeJsonBody(serializeToJson(response));
         }
     }
-}
-
-const(Config) mergeConfig(Config defaultConfig, RenderRequestData data) pure nothrow @safe
-{
-    Config mergedConfig = defaultConfig;
-
-    static foreach (memberName; __traits(allMembers, RenderRequestData))
-    {
-        static if (__traits(hasMember, mergedConfig, memberName))
-        {
-            static if (__traits(compiles, (__traits(getMember, data, memberName)).isNull))
-            {
-                if (!(__traits(getMember, data, memberName)).isNull)
-                {
-                    __traits(getMember, mergedConfig, memberName) = __traits(getMember, data, memberName).get();
-                }
-            }
-            else
-            {
-                __traits(getMember, mergedConfig, memberName) = __traits(getMember, data, memberName);
-            }
-        }
-    }
-
-    return mergedConfig;
 }
 
