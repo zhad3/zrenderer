@@ -11,7 +11,7 @@ import vibe.http.server;
 import zconfig : initializeConfig, getConfigArguments;
 import zrenderer.server.auth;
 import zrenderer.server.globals : defaultConfig, accessTokens;
-import zrenderer.server.routes : handleRenderRequest, getAccessTokens, postAccessToken;
+import zrenderer.server.routes;
 
 enum usage = "A REST server to render sprites from Ragnarok Online";
 
@@ -74,7 +74,8 @@ int main(string[] args)
 
     router.post("/render", &handleRenderRequest);
     router.get("/admin/tokens", &getAccessTokens);
-    router.post("/admin/tokens", &postAccessToken);
+    router.post("/admin/tokens", &newAccessToken);
+    router.post("/admin/tokens/:id", &modifyAccessToken);
 
     auto settings = new HTTPServerSettings;
     settings.bindAddresses = config.hosts;
@@ -107,6 +108,7 @@ bool createOrLoadAccessTokens(const scope string tokenfilename)
 
     if (!exists(tokenfilename))
     {
+        accessTokens = new AccessTokenDB;
 
         AccessToken accessToken = accessTokens.generateAccessToken();
         accessToken.isAdmin = true;

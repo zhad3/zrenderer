@@ -7,7 +7,7 @@ import zrenderer.server.auth : Capabilities, Properties;
 struct AccessTokenData
 {
     @optional Nullable!uint id;
-    string description;
+    @optional Nullable!string description;
     @optional Nullable!bool isAdmin;
     @optional Nullable!CapabilitiesData capabilities;
     @optional Nullable!PropertiesData properties;

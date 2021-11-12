@@ -1,9 +1,9 @@
 module zrenderer.server.auth;
 
+import core.sync.mutex : Mutex;
+import std.typecons : Tuple, Nullable;
 import vibe.core.log : logWarn, logError;
 import vibe.http.server : HTTPServerRequest;
-
-import std.typecons : Tuple, Nullable;
 
 private immutable TOKEN_LENGTH = 32;
 private auto TOKEN_CHARACTERS = cast(immutable ubyte[]) "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -23,6 +23,7 @@ struct Capabilities
 {
     bool createAccessTokens;
     bool revokeAccessTokens;
+    bool modifyAccessTokens;
     bool readAccessTokens;
     bool readHealth;
     bool readStatistics;
@@ -34,11 +35,17 @@ struct Properties
     int maxRequestsPerHour = -1;
 }
 
-struct AccessTokenDB
+class AccessTokenDB
 {
+    Mutex mtx;
     int lastId = -1;
     AccessToken[string] tokenMap;
     AccessToken[uint] idMap;
+
+    this()
+    {
+        mtx = new Mutex();
+    }
 
     Nullable!AccessToken getByToken(const scope string accessToken) pure nothrow @safe @nogc
     {
@@ -112,7 +119,7 @@ Nullable!AccessToken checkAuth(HTTPServerRequest req, AccessTokenDB tokens) @saf
 
 AccessTokenDB parseAccessTokensFile(const scope string filename)
 {
-    AccessTokenDB tokenDB;
+    AccessTokenDB tokenDB = new AccessTokenDB;
 
     bool foundAdmin = false;
     int adminCount = 0;

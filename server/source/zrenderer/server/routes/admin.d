@@ -36,7 +36,7 @@ void getAccessTokens(HTTPServerRequest req, HTTPServerResponse res) @trusted
             .array);
 }
 
-void postAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
+void newAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
 {
     immutable accessToken = checkAuth(req, accessTokens);
     if (accessToken.isNull() || (!accessToken.get.isAdmin && !accessToken.get.capabilities.createAccessTokens))
@@ -51,7 +51,6 @@ void postAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
         return;
     }
 
-    import std.conv : ConvException;
     import zrenderer.server.dto : AccessTokenData;
 
     AccessTokenData tokenData;
@@ -66,29 +65,115 @@ void postAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
         return;
     }
 
-    synchronized
+    if (tokenData.description.isNull)
     {
-        import std.stdio : File;
-        import std.exception : ErrnoException;
-        import zrenderer.server.auth : serializeAccessToken;
+        setErrorResponse(res, HTTPStatus.badRequest, "Mandatory 'description' is missing");
+        return;
+    }
 
-        try
-        {
-            auto tokenfile = File(defaultConfig.tokenfile, "w+");
-            tokenfile.lock();
-            scope (exit)
-                tokenfile.unlock();
+    accessTokens.mtx.lock();
+    scope(exit)
+        accessTokens.mtx.unlock();
 
-            auto newToken = mergeStruct(accessTokens.generateAccessToken(), tokenData);
+    import std.stdio : File;
+    import std.exception : ErrnoException;
+    import zrenderer.server.auth : serializeAccessToken;
 
-            accessTokens.storeToken(newToken);
-            tokenfile.write(accessTokens.serialize());
-            res.writeJsonBody(Json(["token": Json(newToken.token), "id": Json(newToken.id)]));
-        }
-        catch (ErrnoException err)
-        {
-            setErrorResponse(res, HTTPStatus.internalServerError, "Failed to persist tokens file");
-        }
+    try
+    {
+        auto tokenfile = File(defaultConfig.tokenfile, "w+");
+        tokenfile.lock();
+        scope (exit)
+            tokenfile.unlock();
+
+        auto newToken = mergeStruct(accessTokens.generateAccessToken(), tokenData);
+
+        accessTokens.storeToken(newToken);
+        tokenfile.write(accessTokens.serialize());
+        res.writeJsonBody(Json(["token": Json(newToken.token), "id": Json(newToken.id)]));
+    }
+    catch (ErrnoException err)
+    {
+        setErrorResponse(res, HTTPStatus.internalServerError, "Failed to persist tokens file");
+    }
+}
+
+void modifyAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
+{
+    immutable accessToken = checkAuth(req, accessTokens);
+    if (accessToken.isNull() || (!accessToken.get.isAdmin && !accessToken.get.capabilities.modifyAccessTokens))
+    {
+        unauthorized(res);
+        return;
+    }
+
+    if (req.json == Json.undefined)
+    {
+        setErrorResponse(res, HTTPStatus.badRequest, "Expected json input");
+        return;
+    }
+
+    import std.exception : ifThrown;
+    import std.conv : to;
+
+    const tokenId = req.params["id"].to!uint.ifThrown(uint.max);
+
+    if (tokenId == uint.max)
+    {
+        setErrorResponse(res, HTTPStatus.badRequest, "Invalid token id provided");
+        return;
+    }
+
+    import zrenderer.server.dto : AccessTokenData;
+
+    AccessTokenData tokenData;
+
+    try
+    {
+        tokenData = deserializeJson!AccessTokenData(req.json);
+    }
+    catch (Exception err)
+    {
+        setErrorResponse(res, HTTPStatus.badRequest, err.msg);
+        return;
+    }
+
+    accessTokens.mtx.lock();
+    scope(exit)
+        accessTokens.mtx.unlock();
+
+    auto existingToken = accessTokens.getById(tokenId);
+    if (existingToken.isNull)
+    {
+        setErrorResponse(res, HTTPStatus.notFound, "Token doesn't exist");
+        return;
+    }
+    else if (existingToken.get.isAdmin)
+    {
+        setErrorResponse(res, HTTPStatus.badRequest, "Cannot change token");
+        return;
+    }
+
+    import std.stdio : File;
+    import std.exception : ErrnoException;
+    import zrenderer.server.auth : serializeAccessToken;
+
+    try
+    {
+        auto tokenfile = File(defaultConfig.tokenfile, "w+");
+        tokenfile.lock();
+        scope (exit)
+            tokenfile.unlock();
+
+        auto updatedToken = mergeStruct(existingToken.get, tokenData);
+
+        accessTokens.storeToken(updatedToken);
+        tokenfile.write(accessTokens.serialize());
+        res.writeBody("");
+    }
+    catch (ErrnoException err)
+    {
+        setErrorResponse(res, HTTPStatus.internalServerError, "Failed to persist tokens file");
     }
 }
 
