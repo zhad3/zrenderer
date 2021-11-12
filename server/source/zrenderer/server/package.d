@@ -76,6 +76,7 @@ int main(string[] args)
     router.get("/admin/tokens", &getAccessTokens);
     router.post("/admin/tokens", &newAccessToken);
     router.post("/admin/tokens/:id", &modifyAccessToken);
+    router.delete_("/admin/tokens/:id", &revokeAccessToken);
 
     auto settings = new HTTPServerSettings;
     settings.bindAddresses = config.hosts;

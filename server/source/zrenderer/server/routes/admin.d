@@ -177,3 +177,59 @@ void modifyAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
     }
 }
 
+void revokeAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
+{
+    immutable accessToken = checkAuth(req, accessTokens);
+    if (accessToken.isNull() || (!accessToken.get.isAdmin && !accessToken.get.capabilities.revokeAccessTokens))
+    {
+        unauthorized(res);
+        return;
+    }
+
+    import std.exception : ifThrown;
+    import std.conv : to;
+
+    const tokenId = req.params["id"].to!uint.ifThrown(uint.max);
+
+    if (tokenId == uint.max)
+    {
+        setErrorResponse(res, HTTPStatus.badRequest, "Invalid token id provided");
+        return;
+    }
+
+    accessTokens.mtx.lock();
+    scope(exit)
+        accessTokens.mtx.unlock();
+
+    auto existingToken = accessTokens.getById(tokenId);
+    if (existingToken.isNull)
+    {
+        setErrorResponse(res, HTTPStatus.notFound, "Token doesn't exist");
+        return;
+    }
+    else if (existingToken.get.isAdmin)
+    {
+        setErrorResponse(res, HTTPStatus.badRequest, "Cannot revoke token");
+        return;
+    }
+
+    import std.stdio : File;
+    import std.exception : ErrnoException;
+    import zrenderer.server.auth : serializeAccessToken;
+
+    try
+    {
+        auto tokenfile = File(defaultConfig.tokenfile, "w+");
+        tokenfile.lock();
+        scope (exit)
+            tokenfile.unlock();
+
+        accessTokens.removeById(tokenId);
+        tokenfile.write(accessTokens.serialize());
+        res.writeBody("");
+    }
+    catch (ErrnoException err)
+    {
+        setErrorResponse(res, HTTPStatus.internalServerError, "Failed to persist tokens file");
+    }
+}

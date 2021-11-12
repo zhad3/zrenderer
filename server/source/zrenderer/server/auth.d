@@ -87,6 +87,38 @@ class AccessTokenDB
         return token;
     }
 
+    bool removeByToken(const scope string token) nothrow @safe
+    {
+        const existingToken = getByToken(token);
+        if (existingToken.isNull)
+        {
+            return false;
+        }
+
+        const id = existingToken.get.id;
+
+        idMap.remove(id);
+        tokenMap.remove(token);
+
+        return true;
+    }
+
+    bool removeById(uint id) nothrow @safe
+    {
+        const existingToken = getById(id);
+        if (existingToken.isNull)
+        {
+            return false;
+        }
+
+        const token = existingToken.get.token;
+
+        idMap.remove(id);
+        tokenMap.remove(token);
+
+        return true;
+    }
+
     string serialize() @safe
     {
         import std.algorithm : map, sort;
