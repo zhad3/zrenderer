@@ -26,7 +26,6 @@ struct Capabilities
     bool modifyAccessTokens;
     bool readAccessTokens;
     bool readHealth;
-    bool readStatistics;
 }
 
 struct Properties

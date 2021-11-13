@@ -233,3 +233,24 @@ void revokeAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
         setErrorResponse(res, HTTPStatus.internalServerError, "Failed to persist tokens file");
     }
 }
+
+void getHealth(HTTPServerRequest req, HTTPServerResponse res) @trusted
+{
+    immutable accessToken = checkAuth(req, accessTokens);
+    if (accessToken.isNull() || (!accessToken.get.isAdmin && !accessToken.get.capabilities.readHealth))
+    {
+        unauthorized(res);
+        return;
+    }
+
+    auto reply = Json(["up": Json(true)]);
+
+    if (accessToken.get.isAdmin)
+    {
+        import core.memory : GC;
+
+        reply["gc"] = Json(["usedSize": Json(GC.stats.usedSize), "freeSize": Json(GC.stats.freeSize)]);
+    }
+
+    res.writeJsonBody(reply);
+}
