@@ -3,9 +3,11 @@ module zrenderer.server.routes;
 public import zrenderer.server.routes.admin;
 public import zrenderer.server.routes.render;
 
+import std.typecons : Nullable;
 import vibe.data.json;
-import vibe.http.server : HTTPServerResponse;
+import vibe.http.server : HTTPServerResponse, HTTPServerRequest;
 import vibe.http.status;
+import zrenderer.server.auth : AccessToken;
 
 void setErrorResponse(ref HTTPServerResponse res, HTTPStatus httpStatus, const scope string message = string.init)
 {
@@ -19,6 +21,26 @@ void unauthorized(HTTPServerResponse res)
     setErrorResponse(res, HTTPStatus.unauthorized, "Unauthorized");
 }
 
+void logCustomRequest(HTTPServerRequest req, const scope string message,
+        Nullable!AccessToken accessToken = Nullable!AccessToken.init) @safe
+{
+    import std.exception : ifThrown;
+    import std.format : format;
+    import vibe.core.log : logInfo;
+
+    auto remoteHost = req.headers["X-REAL-IP"].ifThrown(req.peer);
+
+    logInfo("%s - %s %s \"%s\" -- Token: %s",
+            remoteHost,
+            req.username.length > 0 ? req.username : "-",
+            req.timeCreated.toSimpleString(),
+            message,
+            accessToken.isNull ? "-" : format("%s Id: %u Desc: %s",
+                accessToken.get.token,
+                accessToken.get.id,
+                accessToken.get.description));
+
+}
 
 T mergeStruct(T, S)(T target, S source) pure nothrow @safe
 {

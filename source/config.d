@@ -1,5 +1,6 @@
 module config;
 
+import logging : LogLevel;
 import zconfig : Section, Desc, Short, ConfigFile, Required;
 
 enum Gender
@@ -154,6 +155,10 @@ struct Config
     @Desc("Defines the output format. Possible values are 'png' or 'zip'. If zip is chosen the zip will contain png " ~
             "files.")
     OutputFormat outputFormat = OutputFormat.png;
+
+    @Desc("Log level. Defines the minimum level at which logs will be shown. Possible values are: " ~
+            "all, trace, info, warning, error, critical, fatal or off.")
+    LogLevel loglevel = LogLevel.info;
 
     @Section("server")
     {

@@ -2,10 +2,12 @@ module zrenderer.server;
 
 import app : createOutputDirectory;
 import config : Config;
+import logging : zLogLevel = LogLevel;
 import std.conv : ConvException;
 import std.getopt : GetOptException;
 import std.stdio : stderr;
 import vibe.core.core;
+import vibe.core.log : LogLevel;
 import vibe.http.router;
 import vibe.http.server;
 import zconfig : initializeConfig, getConfigArguments;
@@ -62,7 +64,10 @@ int main(string[] args)
     {
         import vibe.core.log : registerLogger, FileLogger;
 
-        registerLogger(cast(shared) new FileLogger(config.logfile));
+        auto filelogger = cast(shared) new FileLogger(config.logfile);
+        filelogger.minLevel = config.loglevel.toVibeLogLevel();
+
+        registerLogger(filelogger);
     }
 
     if (!createOrLoadAccessTokens(config.tokenfile))
@@ -82,6 +87,7 @@ int main(string[] args)
     auto settings = new HTTPServerSettings;
     settings.bindAddresses = config.hosts;
     settings.port = config.port;
+    settings.accessLogToConsole = true;
     auto listener = listenHTTP(settings, router);
 
     import vibe.core.args : finalizeCommandLineOptions;
@@ -142,4 +148,29 @@ bool createOrLoadAccessTokens(const scope string tokenfilename)
     }
 
     return true;
+}
+
+LogLevel toVibeLogLevel(zLogLevel loglevel) pure nothrow @safe @nogc
+{
+    switch (loglevel)
+    {
+        case zLogLevel.all:
+            return LogLevel.min;
+        case zLogLevel.trace:
+            return LogLevel.trace;
+        case zLogLevel.info:
+            return LogLevel.info;
+        case zLogLevel.warning:
+            return LogLevel.warn;
+        case zLogLevel.error:
+            return LogLevel.error;
+        case zLogLevel.critical:
+            return LogLevel.critical;
+        case zLogLevel.fatal:
+            return LogLevel.fatal;
+        case zLogLevel.off:
+            return LogLevel.none;
+        default:
+            return LogLevel.min;
+    }
 }

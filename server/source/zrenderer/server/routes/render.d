@@ -17,7 +17,7 @@ import vibe.http.status;
 import zrenderer.server.auth : AccessToken, checkAuth;
 import zrenderer.server.dto : RenderRequestData, RenderResponseData, toString;
 import zrenderer.server.globals : defaultConfig, accessTokens;
-import zrenderer.server.routes : setErrorResponse, mergeStruct, unauthorized;
+import zrenderer.server.routes : setErrorResponse, mergeStruct, unauthorized, logCustomRequest;
 import zrenderer.server.worker : renderWorker;
 
 void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
@@ -48,7 +48,7 @@ void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
         return;
     }
 
-    logInfo(requestData.toString ~ " -- " ~ "Token: " ~ accessToken.get.description);
+    logCustomRequest(req, requestData.toString, accessToken);
 
     const(Config) mergedConfig = mergeStruct(defaultConfig, requestData);
 
