@@ -14,6 +14,12 @@ void setErrorResponse(ref HTTPServerResponse res, HTTPStatus httpStatus, const s
     res.writeJsonBody(jsonResponse);
 }
 
+void unauthorized(HTTPServerResponse res)
+{
+    setErrorResponse(res, HTTPStatus.unauthorized, "Unauthorized");
+}
+
+
 T mergeStruct(T, S)(T target, S source) pure nothrow @safe
 {
     T mergedStruct = target;

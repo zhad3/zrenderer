@@ -17,7 +17,7 @@ import vibe.http.status;
 import zrenderer.server.auth : AccessToken, checkAuth;
 import zrenderer.server.dto : RenderRequestData, RenderResponseData, toString;
 import zrenderer.server.globals : defaultConfig, accessTokens;
-import zrenderer.server.routes : setErrorResponse, mergeStruct;
+import zrenderer.server.routes : setErrorResponse, mergeStruct, unauthorized;
 import zrenderer.server.worker : renderWorker;
 
 void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
@@ -26,7 +26,7 @@ void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
 
     if (accessToken.isNull() || !accessToken.get.isValid)
     {
-        setErrorResponse(res, HTTPStatus.unauthorized, "Missing or invalid access token");
+        unauthorized(res);
         return;
     }
 
@@ -36,13 +36,23 @@ void handleRenderRequest(HTTPServerRequest req, HTTPServerResponse res) @trusted
         return;
     }
 
-    RenderRequestData requestData = deserializeJson!RenderRequestData(req.json);
+    RenderRequestData requestData;
+
+    try
+    {
+        requestData = deserializeJson!RenderRequestData(req.json);
+    }
+    catch (Exception err)
+    {
+        setErrorResponse(res, HTTPStatus.badRequest, err.msg);
+        return;
+    }
 
     logInfo(requestData.toString ~ " -- " ~ "Token: " ~ accessToken.get.description);
 
     const(Config) mergedConfig = mergeStruct(defaultConfig, requestData);
 
-    if (!isJobArgValid(mergedConfig.job))
+    if (!isJobArgValid(mergedConfig.job, accessToken.get.properties.maxJobIdsPerRequest))
     {
         setErrorResponse(res, HTTPStatus.badRequest, "Invalid job element");
         return;

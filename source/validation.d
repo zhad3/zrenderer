@@ -1,8 +1,10 @@
 module validation;
 
-bool isJobArgValid(const(string)[] jobids) pure @safe
+bool isJobArgValid(const(string)[] jobids, int maxAmount = -1) pure @safe
 {
     bool isValid = true;
+
+    size_t jobcount = 0;
 
     foreach (jobidstr; jobids)
     {
@@ -23,6 +25,7 @@ bool isJobArgValid(const(string)[] jobids) pure @safe
             try
             {
                 jobidstr.to!uint;
+                jobcount++;
             }
             catch (ConvException err)
             {
@@ -48,6 +51,8 @@ bool isJobArgValid(const(string)[] jobids) pure @safe
                     isValid = false;
                     break;
                 }
+
+                jobcount += end == start ? 1 : (end-start);
             }
             catch (ConvException err)
             {
@@ -55,6 +60,11 @@ bool isJobArgValid(const(string)[] jobids) pure @safe
                 break;
             }
         }
+    }
+
+    if (maxAmount >= 0 && jobcount > maxAmount)
+    {
+        isValid = false;
     }
 
     return isValid;

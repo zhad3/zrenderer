@@ -5,12 +5,7 @@ import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.http.status;
 import zrenderer.server.auth : AccessToken, checkAuth;
 import zrenderer.server.globals : accessTokens, defaultConfig;
-import zrenderer.server.routes : setErrorResponse, mergeStruct;
-
-private void unauthorized(HTTPServerResponse res)
-{
-    setErrorResponse(res, HTTPStatus.unauthorized, "Unauthorized");
-}
+import zrenderer.server.routes : setErrorResponse, mergeStruct, unauthorized;
 
 void getAccessTokens(HTTPServerRequest req, HTTPServerResponse res) @trusted
 {
