@@ -1,0 +1,513 @@
+openapi: 3.0.3
+info:
+  title: zrenderer API
+  version: '1.3'
+  description: API for the zrenderer service (https://github.com/zhad3/zrenderer).
+servers:
+  - url: http://localhost:{port}
+    variables:
+      port:
+        default: '11011'
+paths:
+  /render:
+    summary: Endpoint for requesting to render sprites
+    post:
+      requestBody:
+        $ref: '#/components/requestBodies/RenderRequestBody'
+      parameters:
+        - deprecated: false
+          name: downloadimage
+          description: If provided, the request will return the first rendered image.
+          schema:
+            type: boolean
+          in: query
+          required: false
+          allowEmptyValue: true
+          example: false
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenderResponse'
+            image/png:
+              schema:
+                format: binary
+                description: Returns image/png.
+                type: string
+                example: <image data>
+            application/zip:
+              schema:
+                format: binary
+                description: Returns application/zip.
+                type: string
+                example: <zip data>
+          description: 'Ok'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: render
+      summary: Send a request to render sprites
+      tags:
+        - Rendering
+  /admin/tokens:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccessToken'
+                example:
+                  - id: 4
+                    token: knlw2e6mppf5f49b7hrolypta8gjmp3g
+                    isAdmin: false
+                    description: Fred's token
+                    capabilities:
+                      createAccessTokens: false
+                      revokeAccessTokens: false
+                      modifyAccessTokens: false
+                      readAccessTokens: false
+                      readHealth: true
+                    properties:
+                      maxJobIdsPerRequest: 5
+                      maxRequestsPerHour: 100
+                  - id: 5
+                    token: 7k2sfh10cu1dio5l0pt9tig7aate9h9g
+                    isAdmin: false
+                    description: Unknown's Bot
+                    capabilities:
+                      createAccessTokens: false
+                      revokeAccessTokens: false
+                      modifyAccessTokens: false
+                      readAccessTokens: false
+                      readHealth: true
+                    properties:
+                      maxJobIdsPerRequest: 10
+                      maxRequestsPerHour: 500
+          description: 'Ok'
+        '401':
+          $ref: '#/components/responses/401'
+      operationId: getTokens
+      summary: Get all access tokens
+      description: Only the admin may retrieve the admin token
+      tags:
+        - Admin
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BaseToken'
+              example:
+                description: Fred's token
+                capabilities:
+                  readHealth: true
+                properties:
+                  maxJobIdsPerRequest: 5
+                  maxRequestsPerHour: 100
+        description: 'Description is required.'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTokenResponse'
+                example:
+                  id: 4
+                  token: knlw2e6mppf5f49b7hrolypta8gjmp3g
+          description: 'Ok'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: createToken
+      description: Request body for token settings will only be used when the requester has the capability to modify access tokens.
+      summary: Create new access token
+      tags:
+        - Admin
+  /admin/tokens/{id}:
+    description: Modify existing access token identified by the id given in the path.
+    parameters:
+      - deprecated: false
+        name: id
+        description: Id of the access token
+        schema:
+          type: integer
+          format: int32
+        in: path
+        required: true
+        allowEmptyValue: false
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BaseToken'
+            example:
+              description: Fred's token
+              capabilities:
+                readHealth: true
+              properties:
+                maxJobIdsPerRequest: 5
+                maxRequestsPerHour: 100
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: modifyToken
+      description: ''
+      summary: Modify existing access token
+      tags:
+        - Admin
+    delete:
+      responses:
+        '200':
+          $ref: '#/components/responses/200'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: deleteToken
+      description: Admin tokens cannot be deleted.
+      summary: Delete existing access token
+      tags:
+        - Admin
+  /admin/health:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+          description: Ok
+      operationId: getHealth
+      summary: Retrieve status of service
+      description: Returns health data about the service. GC data is only returned for admins.
+      tags:
+        - Admin
+components:
+  schemas:
+    GenericResponse:
+      required:
+        - statusMessage
+      type: object
+      properties:
+        statusMessage:
+          type: string
+          example: Response message
+    CreateTokenResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Id of the newly created access token
+          example: 4
+        token:
+          type: string
+          description: Token value of the newly created access token
+          example: knlw2e6mppf5f49b7hrolypta8gjmp3g
+    RenderResponse:
+      type: object
+      properties:
+        output:
+          type: array
+          items:
+            type: string
+      example:
+        output:
+          - output/1002/0-0.png
+          - output/1002/0-1.png
+          - output/1002/0-2.png
+          - output/1002/0-3.png
+          - output/1002/0.png
+    RenderRequest:
+      required:
+        - job
+      type: object
+      properties:
+        job:
+          description: >-
+            Job id(s) which should be rendered. Can contain multiple comma
+            separated values as well as ranges (e.g. "1001-1999").
+          type: array
+          items:
+            type: string
+          example: 1001,1002,1005-1010,2122
+        action:
+          format: int32
+          description: Action of the job which should be drawn.
+          minimum: 0
+          type: integer
+          example: 5
+        frame:
+          format: int32
+          description: >-
+            Frame of the action which should be drawn. Set to -1 to draw all
+            frames.
+          minimum: -1
+          type: integer
+          example: -1
+        gender:
+          format: int32
+          description: >-
+            Gender of the player character. Possible values are: 1=male or
+            0=female.
+          enum:
+            - 0
+            - 1
+          example: 1
+        head:
+          format: int32
+          description: Head id which should be used when drawing a player.
+          minimum: 0
+          type: integer
+          example: 2
+        outfit:
+          format: int32
+          description: >-
+            The alternative outfit for player characters. Not all characters
+            have alternative outfits. In these cases the default character will
+            be rendered instead.
+          minimum: 0
+          type: integer
+          example: 0
+        headgear:
+          description: Headgears which should be attached to the players head.
+          type: array
+          items:
+            format: int32
+            minimum: 0
+            type: integer
+          example: [1, 24, 15]
+        garment:
+          format: int32
+          description: Garment which should be attached to the players body.
+          minimum: 0
+          type: integer
+          example: 0
+        weapon:
+          format: int32
+          description: Weapon which should be attached to the players body.
+          minimum: 0
+          type: integer
+          example: 1
+        shield:
+          format: int32
+          description: Shield which should be attached to the players body.
+          minimum: 0
+          type: integer
+          example: 0
+        bodyPalette:
+          format: int32
+          description: Palette for the body sprite. Set to -1 to use the standard palette.
+          minimum: -1
+          type: integer
+          example: -1
+        headPalette:
+          format: int32
+          description: Palette for the head sprite. Set to -1 to use the standard palette.
+          minimum: -1
+          type: integer
+          example: -1
+        headdir:
+          format: int32
+          description: >-
+            Direction in which the head should turn. This is only applied to
+            player sprites and only to the stand and sit action. Possible values
+            are: 0=straight, 1=left, 2=right or 3=all. If 'all' is set then this
+            direction system is ignored and all frames are interpreted like any
+            other one.
+          enum:
+            - 0
+            - 1
+            - 2
+            - 3
+          example: 0
+        enableShadow:
+          description: Draw shadow underneath the sprite.
+          type: boolean
+          example: true
+        canvas:
+          description: >-
+            Sets a canvas onto which the sprite should be rendered. The canvas
+            requires two options: its size and an origin point inside the canvas
+            where the sprite should be placed. The format is as following:
+            {width}x{height}±{x}±{y}. An origin point of +0+0 is equal to the
+            top left corner. Example: 200x250+100+125. This would create a
+            canvas and place the sprite in the center.
+          type: string
+          example: 200x250+100+125
+        outputFormat:
+          format: int32
+          description: >-
+            Defines the output format. Possible values are 0=png or 1=zip. If
+            zip is chosen the zip will contain png files.
+          enum:
+            - 0
+            - 1
+          example: 0
+    BaseToken:
+      type: object
+      properties:
+        description:
+          description: >-
+            The name/description of the access token to easily identify the
+            owner/purpose of it.
+          type: string
+          example: Webservice foo.server.com
+        capabilities:
+          description: Contains a list of capabilities that this token has.
+          type: object
+          properties:
+            createAccessTokens:
+              description: Can use the endpoint to create new access tokens.
+              type: boolean
+              example: false
+            revokeAccessTokens:
+              description: Can use the endpoint to revoke/delete access tokens.
+              type: boolean
+              example: false
+            modifyAccessTokens:
+              description: Can use the endpoint to modify existing access tokens.
+              type: boolean
+              example: false
+            readAccessTokens:
+              description: Can use the endpoint to return a list of existing access tokens.
+              type: boolean
+              example: false
+            readHealth:
+              description: Can use the endpoint to retrieve health status.
+              type: boolean
+              example: true
+        properties:
+          type: object
+          properties:
+            maxJobIdsPerRequest:
+              description: How many job ids this token may provide per request
+              type: integer
+              format: int32
+              example: 5
+            maxRequestsPerHour:
+              description: Unused
+              type: integer
+              format: int32
+              example: 100
+    AccessToken:
+      allOf:
+        - $ref: '#/components/schemas/BaseToken'
+        - type: object
+          properties:
+            id:
+              format: int32
+              description: The identifier of this access token.
+              type: integer
+              example: 4
+            token:
+              description: The actual token value that is used to make requests.
+              type: string
+              example: knlw2e6mppf5f49b7hrolypta8gjmp3g
+            isAdmin:
+              description: >-
+                Whether this token has admin privileges. Will only be returned if
+                requested with an admin token.
+              type: boolean
+              example: false
+    HealthResponse:
+      type: object
+      properties:
+        up:
+          type: boolean
+          description: Whether the service is up and running
+        gc:
+          type: object
+          properties:
+            usedSize:
+              type: integer
+              format: int32
+              description: The size of bytes allocated on the GC heap
+            freeSize:
+              type: integer
+              format: int32
+              description: The size of bytes freed on the GC heap
+      example:
+        up: true
+        gc:
+          usedSize: 2488464
+          freeSize: 2754352
+  responses:
+    '200':
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericResponse'
+            example:
+              statusMessage: Ok
+      description: Ok.
+    '400':
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericResponse'
+            example:
+              statusMessage: Expected json input
+      description: Illegal input for operation.
+    '401':
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericResponse'
+            example:
+              statusMessage: Unauthorized
+      description: Unauthorized.
+    '404':
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericResponse'
+            example:
+              statusMessage: Token doesn't exist
+      description: Not found.
+    '500':
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericResponse'
+            example:
+              statusMessage: Couldn't write to file
+      description: Server Error.
+  requestBodies:
+    RenderRequestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RenderRequest'
+      required: true
+  securitySchemes:
+    accessToken:
+      type: apiKey
+      description: Access token required to make requests.
+      name: accesstoken
+      in: query
+security:
+  - accessToken: []
