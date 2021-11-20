@@ -8,10 +8,6 @@ Tool to render sprites from the game Ragnarok Online. This tool is available as 
   * [CLI](#cli)
     * [Example](#example)
   * [Server](#server)
-    * [API](#api)
-      * [Request](#request)
-      * [Response](#response)
-      * [Example](#example-1)
 * [Docker](#docker)
 * [Dependencies when building](#dependencies-when-building)
   * [Linux](#linux)
@@ -51,6 +47,7 @@ A tool to render sprites from Ragnarok Online
      --returnExistingFiles Whether to return already existing sprites (true) or always re-render it (false). You should only use this option in conjuction with 'enableUniqueFilenames=true'. Default: false
                   --canvas Sets a canvas onto which the sprite should be rendered. The canvas requires two options: its size and an origin point inside the canvas where the sprite should be placed. The format is as following: <width>x<height>±<x>±<y>. An origin point of +0+0 is equal to the top left corner. Example: 200x250+100+125. This would create a canvas and place the sprite in the center. Default: 
             --outputFormat Defines the output format. Possible values are 'png' or 'zip'. If zip is chosen the zip will contain png files. Default: png
+                --loglevel Log level. Defines the minimum level at which logs will be shown. Possible values are: all, trace, info, warning, error, critical, fatal or off. Default: info
                    --hosts Hostnames of the server. Can contain multiple comma separated values. Default: localhost
                     --port Port of the server. Default: 11011
                  --logfile Log file to write to. E.g. /var/log/zrenderer.log. Leaving it empty will log to stdout. Default: 
@@ -98,93 +95,7 @@ and print the token to the console. You will need that token to make requests to
 
 You can find the openApi specifications here: [OpenAPI specifications](https://github.com/zhad3/zrenderer/tree/main/server/api-spec).
 
-### API
-The server will provide one API endpoint:
-
-| Endpoint | Method | Content-Type |
-| --- | --- | --- |
-| /render | POST | application/json |
-
-Each request requires an access token to be supplied via the query parameter `accesstoken`.
-
-#### Request
-The endpoint accepts a request in json format with the following attributes:
-
-| Attribute | Type |
-| --- | --- |
-| job | **Required**. string array |
-| action | number >= 0 |
-| frame | number |
-| gender | number: [0, 1]. 0=female, 1=male |
-| head | number >= 0 |
-| outfit | number >= 0 |
-| garment | number >= 0 |
-| weapon | number >= 0 |
-| shield | number >= 0 |
-| bodypalette | number |
-| headpalette | number |
-| headdir | number: [0, 1, 2, 3]. 0=straight, 1=left, 2=right, 3=all |
-| enableshadow | boolean |
-| canvas | string |
-| headgear | number > 0 array |
-| outputFormat | number: [0, 1]. 0=png, 1=zip |
-
-Note that the attribute names are identical to the options one and so is their function and meaning as well as defaults.
-
-Additionally the server accepts one query parameter called `downloadimage`. If provided the first rendered image is returned directly instead of a json object.
-
-#### Response
-The following responses may be returned by the server
-
-| HTTP Status | Content-Type | Body | Description |
-| --- | --- | --- | --- |
-| 200 | application/json | `{"output": ["out/0/1-0.png", "out/1002/1.png", ...]}` | JSON Object with one attribute called "output". The output attribute contains an array of filenames of the generated sprites. |
-| 200 | image/png | `<image data>` | First rendered image is returned if the query parameter `downloadimage` is provided. |
-| 200 | application/zip | `<zip data>` | Generated zip file is returned if body parameter `"outputFormat": 1` is provided. |
-| 204 | application/json | `{"statusMessage": "<message>"}` | Returned when nothing was rendered. |
-| 400 | application/json | `{"statusMessage": "<error message>"}` | Returned when the request is invalid. |
-| 401 | application/json | `{"statusMessage": "<error message>"}` | Returned when no valid access token is used for the request. |
-| 500 | application/json | `{"statusMessage": "<error message>"}`  | Returned when an error occurred. |
-
-#### Example
-
-`POST /render?accesstoken=<my_accesstoken>`
-```json
-{
-    "job": ["1001", "1005"],
-    "action": 16,
-    "frame": 2
-}
-```
-
-```
-200 OK
-Content-Type: application/json
-```
-
-```json
-{
-    "output": [
-        "output/1001/16-2.png",
-        "output/1005/16-2.png"
-    ]
-}
-```
----
-`POST /render?accesstoken=<my_accesstoken>&downloadimage`
-
-```json
-{
-    "job": ["1001", "1005"],
-}
-```
-
-```
-200 OK
-Content-Type: image/png
-
-<image data for jobid 1001>
-```
+And documentation here: https://github.com/zhad3/zrenderer/tree/main/server/api-doc
 
 ## Docker
 You can use the pre-built and published images to run the server.

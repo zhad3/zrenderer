@@ -53,6 +53,33 @@ paths:
       summary: Send a request to render sprites
       tags:
         - Rendering
+  /token/info:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenInfoResponse'
+                example:
+                  capabilities:
+                    createAccessTokens: false
+                    revokeAccessTokens: false
+                    modifyAccessTokens: false
+                    readAccessTokens: false
+                    readHealth: false
+                  properties:
+                    maxJobIdsPerRequest: 5
+                    maxRequestsPerHour: 100
+          description: 'Ok'
+        '401':
+          $ref: '#/components/responses/401'
+      operationId: getTokenInfo
+      summary: Get requesting access token info
+      description: Returns the capabilities and properties of the requesting access token
+      tags:
+        - Token
+
   /admin/tokens:
     get:
       responses:
@@ -98,6 +125,7 @@ paths:
       description: Only the admin may retrieve the admin token
       tags:
         - Admin
+        - Token
     post:
       requestBody:
         content:
@@ -117,7 +145,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateTokenResponse'
+                $ref: '#/components/schemas/TokenCreateResponse'
                 example:
                   id: 4
                   token: knlw2e6mppf5f49b7hrolypta8gjmp3g
@@ -133,6 +161,7 @@ paths:
       summary: Create new access token
       tags:
         - Admin
+        - Token
   /admin/tokens/{id}:
     description: Modify existing access token identified by the id given in the path.
     parameters:
@@ -174,6 +203,7 @@ paths:
       summary: Modify existing access token
       tags:
         - Admin
+        - Token
     delete:
       responses:
         '200':
@@ -191,6 +221,7 @@ paths:
       summary: Delete existing access token
       tags:
         - Admin
+        - Token
   /admin/health:
     get:
       responses:
@@ -205,6 +236,7 @@ paths:
       description: Returns health data about the service. GC data is only returned for admins.
       tags:
         - Admin
+        - Token
 components:
   schemas:
     GenericResponse:
@@ -215,7 +247,7 @@ components:
         statusMessage:
           type: string
           example: Response message
-    CreateTokenResponse:
+    TokenCreateResponse:
       type: object
       properties:
         id:
@@ -227,6 +259,13 @@ components:
           type: string
           description: Token value of the newly created access token
           example: knlw2e6mppf5f49b7hrolypta8gjmp3g
+    TokenInfoResponse:
+      type: object
+      properties:
+        capabilities:
+          $ref: '#/components/schemas/TokenCapabilities'
+        properties:
+          $ref: '#/components/schemas/TokenProperties'
     RenderResponse:
       type: object
       properties:
@@ -367,6 +406,44 @@ components:
             - 0
             - 1
           example: 0
+    TokenCapabilities:
+      type: object
+      description: Contains a list of capabilities that this token has.
+      properties:
+        createAccessTokens:
+          description: Can use the endpoint to create new access tokens.
+          type: boolean
+          example: false
+        revokeAccessTokens:
+          description: Can use the endpoint to revoke/delete access tokens.
+          type: boolean
+          example: false
+        modifyAccessTokens:
+          description: Can use the endpoint to modify existing access tokens.
+          type: boolean
+          example: false
+        readAccessTokens:
+          description: Can use the endpoint to return a list of existing access tokens.
+          type: boolean
+          example: false
+        readHealth:
+          description: Can use the endpoint to retrieve health status.
+          type: boolean
+          example: true
+    TokenProperties:
+      type: object
+      description: Contains a list of properties that this token has.
+      properties:
+        maxJobIdsPerRequest:
+          description: How many job ids this token may provide per request
+          type: integer
+          format: int32
+          example: 5
+        maxRequestsPerHour:
+          description: Unused
+          type: integer
+          format: int32
+          example: 100
     BaseToken:
       type: object
       properties:
@@ -377,42 +454,9 @@ components:
           type: string
           example: Webservice foo.server.com
         capabilities:
-          description: Contains a list of capabilities that this token has.
-          type: object
-          properties:
-            createAccessTokens:
-              description: Can use the endpoint to create new access tokens.
-              type: boolean
-              example: false
-            revokeAccessTokens:
-              description: Can use the endpoint to revoke/delete access tokens.
-              type: boolean
-              example: false
-            modifyAccessTokens:
-              description: Can use the endpoint to modify existing access tokens.
-              type: boolean
-              example: false
-            readAccessTokens:
-              description: Can use the endpoint to return a list of existing access tokens.
-              type: boolean
-              example: false
-            readHealth:
-              description: Can use the endpoint to retrieve health status.
-              type: boolean
-              example: true
+          $ref: '#/components/schemas/TokenCapabilities'
         properties:
-          type: object
-          properties:
-            maxJobIdsPerRequest:
-              description: How many job ids this token may provide per request
-              type: integer
-              format: int32
-              example: 5
-            maxRequestsPerHour:
-              description: Unused
-              type: integer
-              format: int32
-              example: 100
+          $ref: '#/components/schemas/TokenProperties'
     AccessToken:
       allOf:
         - $ref: '#/components/schemas/BaseToken'
