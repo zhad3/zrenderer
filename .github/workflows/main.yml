@@ -50,13 +50,15 @@ jobs:
           dub run --build=release --compiler=ldc2 :configgenerator
           move "bin\zrenderer.exe" "zrenderer.exe"
           move "bin\zrenderer-server.exe" "zrenderer-server.exe"
+          move "bin\libcrypto-1_1-x64.dll" "libcrypto-1_1-x64.dll"
+          move "bin\libssl-1_1-x64.dll" "libssl-1_1-x64.dll"
           move "server\api-spec" "api-spec"
           move "server\api-doc" "api-doc"
 
       - name: Package
         shell: powershell
         run: |
-          Compress-Archive -Path zrenderer.exe,zrenderer-server.exe,resolver_data,README.md,RESOURCES.md,zrenderer.example.conf,zrenderer.docker.conf,api-spec,api-doc -DestinationPath zrenderer-windows-x64-${{ steps.extract_version.outputs.VERSION }}.zip
+          Compress-Archive -Path zrenderer.exe,zrenderer-server.exe,libcrypto-1_1-x64.dll,libssl-1_1-x64.dll,resolver_data,README.md,RESOURCES.md,zrenderer.example.conf,zrenderer.docker.conf,api-spec,api-doc -DestinationPath zrenderer-windows-x64-${{ steps.extract_version.outputs.VERSION }}.zip
 
       - name: Create Release
         env:
