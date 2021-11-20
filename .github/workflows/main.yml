@@ -20,6 +20,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.inputs.gitref || github.ref }}
+          submodules: recursive
 
       - name: Extract version
         id: extract_version
