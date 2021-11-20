@@ -4,6 +4,7 @@ import core.sync.mutex : Mutex;
 import std.typecons : Tuple, Nullable;
 import vibe.core.log : logWarn, logError;
 import vibe.http.server : HTTPServerRequest;
+import zrenderer.server.dto.accesstoken : AccessTokenData, CapabilitiesData, PropertiesData;
 
 private immutable TOKEN_LENGTH = 32;
 private auto TOKEN_CHARACTERS = cast(immutable ubyte[]) "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -454,4 +455,46 @@ string serializeAccessToken(const scope AccessToken accessToken) @safe
         }
     }
     return app.data[0 .. $ - 1]; // Cut of trailing comma
+}
+
+/**
+  Function goes through the tokenData and checks if it contains any capability or property
+  which the requester themselves do not have
+*/
+bool isAllowedToSetTokenData(const AccessToken accessToken, AccessTokenData tokenData) pure nothrow @safe @nogc
+{
+    if (!tokenData.capabilities.isNull)
+    {
+        auto capabilities = tokenData.capabilities.get;
+        static foreach (memberName; __traits(allMembers, CapabilitiesData))
+        {
+            static if (__traits(compiles, (__traits(getMember, capabilities, memberName)).isNull))
+            {
+                if (!(__traits(getMember, capabilities, memberName)).isNull &&
+                        __traits(getMember, capabilities, memberName).get == true &&
+                        __traits(getMember, accessToken.capabilities, memberName) == false)
+                {
+                    return false;
+                }
+            }
+        }
+    }
+
+    if (!tokenData.properties.isNull)
+    {
+        auto properties = tokenData.properties.get;
+        static foreach (memberName; __traits(allMembers, PropertiesData))
+        {
+            static if (__traits(compiles, (__traits(getMember, properties, memberName)).isNull))
+            {
+                if (!(__traits(getMember, properties, memberName)).isNull &&
+                        __traits(getMember, properties, memberName).get > __traits(getMember, accessToken.properties, memberName))
+                {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
 }

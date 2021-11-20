@@ -3,7 +3,7 @@ module zrenderer.server.routes.admin;
 import vibe.data.json;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.http.status;
-import zrenderer.server.auth : AccessToken, checkAuth;
+import zrenderer.server.auth : AccessToken, checkAuth, isAllowedToSetTokenData;
 import zrenderer.server.globals : accessTokens, defaultConfig;
 import zrenderer.server.routes : setErrorResponse, mergeStruct, unauthorized;
 
@@ -60,14 +60,31 @@ void newAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
         return;
     }
 
+    if (!tokenData.description.isNull)
+    {
+        import std.array : replace;
+
+        tokenData.description = tokenData.description.get.replace(",", "");
+        if (tokenData.description.get.length == 0)
+        {
+            tokenData.description.nullify();
+        }
+    }
+
     if (tokenData.description.isNull)
     {
         setErrorResponse(res, HTTPStatus.badRequest, "Mandatory 'description' is missing");
         return;
     }
 
+    if (!accessToken.get.isAdmin && !isAllowedToSetTokenData(accessToken.get, tokenData))
+    {
+        setErrorResponse(res, HTTPStatus.badRequest, "Not allowed to set token capability/property");
+        return;
+    }
+
     accessTokens.mtx.lock();
-    scope(exit)
+    scope (exit)
         accessTokens.mtx.unlock();
 
     import std.stdio : File;
@@ -133,8 +150,25 @@ void modifyAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
         return;
     }
 
+    if (!accessToken.get.isAdmin && !isAllowedToSetTokenData(accessToken.get, tokenData))
+    {
+        setErrorResponse(res, HTTPStatus.badRequest, "Not allowed to set token capability/property");
+        return;
+    }
+
+    if (!tokenData.description.isNull)
+    {
+        import std.array : replace;
+
+        tokenData.description = tokenData.description.get.replace(",", "");
+        if (tokenData.description.get.length == 0)
+        {
+            tokenData.description.nullify();
+        }
+    }
+
     accessTokens.mtx.lock();
-    scope(exit)
+    scope (exit)
         accessTokens.mtx.unlock();
 
     auto existingToken = accessTokens.getById(tokenId);
@@ -193,7 +227,7 @@ void revokeAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
     }
 
     accessTokens.mtx.lock();
-    scope(exit)
+    scope (exit)
         accessTokens.mtx.unlock();
 
     auto existingToken = accessTokens.getById(tokenId);

@@ -2,6 +2,7 @@ module zrenderer.server.routes;
 
 public import zrenderer.server.routes.admin;
 public import zrenderer.server.routes.render;
+public import zrenderer.server.routes.token;
 
 import std.typecons : Nullable;
 import vibe.data.json;
