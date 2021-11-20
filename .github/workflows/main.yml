@@ -1,0 +1,70 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      gitref:
+        description: 'Git ref object (e.g. Tag, Branch, Commit)'
+
+jobs:
+  release-windows-x64:
+    runs-on: windows-2019
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.gitref || github.ref }}
+
+      - name: Extract version
+        id: extract_version
+        shell: powershell
+        run: |
+          $GIT_REF_TAG = ${env:GITHUB_REF} -replace 'refs/tags/',''
+          $INPUT_TAG = "${{ github.event.inputs.gitref }}"
+          $VERSION = if ($INPUT_TAG) { $INPUT_TAG } else { $GIT_REF_TAG }
+          echo GIT_REF_TAG=$GIT_REF_TAG
+          echo INPUT_TAG=$INPUT_TAG
+          echo VERSION=$VERSION
+          echo "::set-output name=VERSION::$VERSION"
+          echo "Checking if the provided VERSION is valid: git rev-parse --verify $VERSION"
+          git rev-parse --verify "$VERSION"
+
+      - name: Setup dlang
+        uses: dlang-community/setup-dlang@v1
+        with:
+          compiler: ldc-latest
+
+      - name: Compile
+        shell: cmd
+        run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          dub build --build=release --compiler=ldc2
+          dub run --build=release --compiler=ldc2 :configgenerator
+          move "bin\zrenderer.exe" "zrenderer.exe"
+          move "bin\zrenderer-server.exe" "zrenderer-server.exe"
+          move "server\api-spec" "api-spec"
+          move "server\api-doc" "api-doc"
+
+      - name: Package
+        shell: powershell
+        run: |
+          Compress-Archive -Path zrenderer.exe,zrenderer-server.exe,resolver_data,README.md,RESOURCES.md,zrenderer.example.conf,zrenderer.docker.conf,api-spec,api-doc -DestinationPath zrenderer-windows-x64-${{ steps.extract_version.outputs.VERSION }}.zip
+
+      - name: Create Release
+        env:
+          VERSION: ${{ steps.extract_version.outputs.VERSION }}
+        uses: ncipollo/release-action@v1.8.10
+        with:
+          artifactErrorsFailBuild: true
+          artifacts: zrenderer-windows-x64-${{ env.VERSION }}.zip
+          omitBody: true
+          name: ${{ env.VERSION }}
+          tag: ${{ env.VERSION }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
