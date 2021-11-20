@@ -6,7 +6,7 @@
     "targetType": "executable",
     "dependencies": {
         "zconfig": "~>1.0.0",
-        "libpng-apng": "~>1.0.3",
+        "libpng-apng": "~>1.0.4",
         "luad": {"path": "../LuaD/"},
         "zencoding:windows949": "~>1.0.0",
         "vibe-d:http": "~>0.9.3"
