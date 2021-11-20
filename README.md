@@ -95,7 +95,8 @@ and print the token to the console. You will need that token to make requests to
 
 You can find the openApi specifications here: [OpenAPI specifications](https://github.com/zhad3/zrenderer/tree/main/server/api-spec).
 
-And documentation here: https://github.com/zhad3/zrenderer/tree/main/server/api-doc
+And documentation here: https://github.com/zhad3/zrenderer/tree/main/server/api-doc.  
+The html can be viewed directly here: https://z0q.neocities.org/ragnarok-online-tools/zrenderer/api/
 
 ## Docker
 You can use the pre-built and published images to run the server.
