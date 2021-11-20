@@ -44,7 +44,8 @@ jobs:
         shell: cmd
         run: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          dub build --build=release --compiler=ldc2
+          dub build --build=release --compiler=ldc2 :cli
+          dub build --build=release --compiler=ldc2 :server
           dub run --build=release --compiler=ldc2 :configgenerator
           move "bin\zrenderer.exe" "zrenderer.exe"
           move "bin\zrenderer-server.exe" "zrenderer-server.exe"
