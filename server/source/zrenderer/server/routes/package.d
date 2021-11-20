@@ -17,6 +17,19 @@ void setErrorResponse(ref HTTPServerResponse res, HTTPStatus httpStatus, const s
     res.writeJsonBody(jsonResponse);
 }
 
+void setOkResponse(ref HTTPServerResponse res, const scope string message = string.init)
+{
+    res.statusCode = HTTPStatus.ok;
+    if (message == string.init)
+    {
+        res.writeJsonBody(Json(["statusMesage": Json("Ok")]));
+    }
+    else
+    {
+        res.writeJsonBody(Json(["statusMessage": Json(message)]));
+    }
+}
+
 void unauthorized(HTTPServerResponse res)
 {
     setErrorResponse(res, HTTPStatus.unauthorized, "Unauthorized");

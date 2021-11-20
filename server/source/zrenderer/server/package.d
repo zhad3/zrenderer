@@ -78,6 +78,7 @@ int main(string[] args)
     auto router = new URLRouter;
 
     router.post("/render", &handleRenderRequest);
+    router.get("/token/info", &getAccessTokenInfo);
     router.get("/admin/tokens", &getAccessTokens);
     router.post("/admin/tokens", &newAccessToken);
     router.post("/admin/tokens/:id", &modifyAccessToken);

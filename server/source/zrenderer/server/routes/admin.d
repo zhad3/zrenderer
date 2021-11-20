@@ -5,12 +5,13 @@ import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.http.status;
 import zrenderer.server.auth : AccessToken, checkAuth, isAllowedToSetTokenData;
 import zrenderer.server.globals : accessTokens, defaultConfig;
-import zrenderer.server.routes : setErrorResponse, mergeStruct, unauthorized;
+import zrenderer.server.routes : setErrorResponse, setOkResponse, mergeStruct, unauthorized;
 
 void getAccessTokens(HTTPServerRequest req, HTTPServerResponse res) @trusted
 {
     immutable accessToken = checkAuth(req, accessTokens);
-    if (accessToken.isNull() || (!accessToken.get.isAdmin && !accessToken.get.capabilities.readAccessTokens))
+    if (accessToken.isNull() || (!accessToken.get.isAdmin &&
+            !accessToken.get.capabilities.readAccessTokens))
     {
         unauthorized(res);
         return;
@@ -26,6 +27,8 @@ void getAccessTokens(HTTPServerRequest req, HTTPServerResponse res) @trusted
             .map!((token) {
                 auto t = serializeToJson(token);
                 t.remove("isValid");
+                if (!accessToken.get.isAdmin)
+                    t.remove("isAdmin");
                 return t;
             })
             .array);
@@ -34,7 +37,8 @@ void getAccessTokens(HTTPServerRequest req, HTTPServerResponse res) @trusted
 void newAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
 {
     immutable accessToken = checkAuth(req, accessTokens);
-    if (accessToken.isNull() || (!accessToken.get.isAdmin && !accessToken.get.capabilities.createAccessTokens))
+    if (accessToken.isNull() || (!accessToken.get.isAdmin && !accessToken.get
+            .capabilities.createAccessTokens))
     {
         unauthorized(res);
         return;
@@ -113,7 +117,8 @@ void newAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
 void modifyAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
 {
     immutable accessToken = checkAuth(req, accessTokens);
-    if (accessToken.isNull() || (!accessToken.get.isAdmin && !accessToken.get.capabilities.modifyAccessTokens))
+    if (accessToken.isNull() || (!accessToken.get.isAdmin && !accessToken.get
+            .capabilities.modifyAccessTokens))
     {
         unauthorized(res);
         return;
@@ -198,7 +203,7 @@ void modifyAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
 
         accessTokens.storeToken(updatedToken);
         tokenfile.write(accessTokens.serialize());
-        res.writeBody("");
+        setOkResponse(res);
     }
     catch (ErrnoException err)
     {
@@ -209,7 +214,8 @@ void modifyAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
 void revokeAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
 {
     immutable accessToken = checkAuth(req, accessTokens);
-    if (accessToken.isNull() || (!accessToken.get.isAdmin && !accessToken.get.capabilities.revokeAccessTokens))
+    if (accessToken.isNull() || (!accessToken.get.isAdmin && !accessToken.get
+            .capabilities.revokeAccessTokens))
     {
         unauthorized(res);
         return;
@@ -255,7 +261,7 @@ void revokeAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
 
         accessTokens.removeById(tokenId);
         tokenfile.write(accessTokens.serialize());
-        res.writeBody("");
+        setOkResponse(res);
     }
     catch (ErrnoException err)
     {
@@ -266,7 +272,8 @@ void revokeAccessToken(HTTPServerRequest req, HTTPServerResponse res) @trusted
 void getHealth(HTTPServerRequest req, HTTPServerResponse res) @trusted
 {
     immutable accessToken = checkAuth(req, accessTokens);
-    if (accessToken.isNull() || (!accessToken.get.isAdmin && !accessToken.get.capabilities.readHealth))
+    if (accessToken.isNull() || (!accessToken.get.isAdmin && !accessToken.get
+            .capabilities.readHealth))
     {
         unauthorized(res);
         return;
