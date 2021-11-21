@@ -168,13 +168,19 @@ AccessTokenDB parseAccessTokensFile(const scope string filename)
 
         try
         {
-            import std.ascii : newline;
-
-            if (lastId.length <= newline.length)
+            if (lastId.length == 0 || (lastId.length == 1 && lastId[0] == '\n') ||
+                    (lastId.length == 2 && lastId[0] == '\r' && lastId[1] == '\n'))
             {
-                throw new ConvException("Empty last id.");
+                throw new ConvException("Empty lastId");
             }
-            tokenDB.lastId = lastId[0 .. $ - newline.length].to!uint(10);
+            if (lastId[$ - 1] == '\r')
+            {
+                tokenDB.lastId = lastId[0 .. $ - 2].to!uint(10);
+            }
+            else
+            {
+                tokenDB.lastId = lastId[0 .. $ - 1].to!uint(10);
+            }
         }
         catch (ConvException err)
         {
