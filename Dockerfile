@@ -11,18 +11,17 @@ RUN dub clean && dub build --build=release --config=docker --force :server
 
 FROM alpine:3.14
 
-ENV ZREN_USER=zren
-ENV ZREN_GROUP=zren
-
 EXPOSE 11011
 
 RUN apk update && \
     apk add --no-cache zlib openssl llvm-libunwind && \
-    adduser --disabled-password zren zren
+    mkdir /zren && \
+    adduser --disabled-password -h /zren -s /bin/sh zren zren
 
 WORKDIR /zren
-COPY --from=build --chown=$ZREN_USER:$ZREN_GROUP /zrenderer/bin/zrenderer-server .
-COPY --from=build --chown=$ZREN_USER:$ZREN_GROUP /zrenderer/resolver_data ./resolver_data
+COPY --from=build --chown=zren:zren /zrenderer/bin/zrenderer-server .
+COPY --from=build --chown=zren:zren /zrenderer/resolver_data ./resolver_data
+
 USER zren
 
 CMD ["./zrenderer-server"]
