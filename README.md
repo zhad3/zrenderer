@@ -109,7 +109,7 @@ docker run -d --name zrenderer \
   -v ./output:/home/zrenderer/output \
   -v ./my-resources:/home/zrenderer/resources \
   -p 11011:11011 \
-  zrenderer:latest
+  zhade/zrenderer:latest
 ```
 
 You will need to provide three directory/files:

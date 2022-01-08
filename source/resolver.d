@@ -21,24 +21,26 @@ bool isHomunculus(uint jobid) pure nothrow @safe @nogc
 
 bool isMonster(uint jobid) pure nothrow @safe @nogc
 {
-    return jobid >= 1001 && jobid < 3999;
+    return (jobid >= 1001 && jobid < 3999) || jobid >= 20_000;
 }
 
 bool isPlayer(uint jobid) pure nothrow @safe @nogc
 {
-    return jobid < 45 || (jobid - 4001 < 280);
+    return jobid < 45 || (jobid - 4001 < 316);
 }
 
 bool isDoram(uint jobid) pure nothrow @safe @nogc
 {
-    return jobid - 4217 <= 4;
+    return (jobid - 4217 <= 4) || jobid == 4308 || jobid == 4315;
 }
 
 bool isBaby(uint jobid) pure nothrow @safe @nogc
 {
     if ((jobid >= 4023 && jobid <= 4045) || (jobid >= 4096 && jobid <= 4112) ||
             (jobid >= 4158 && jobid <= 4182) || jobid == 4191 || jobid == 4193 ||
-            jobid == 4195 || jobid == 4196 || (jobid >= 4205 && jobid <= 4210))
+            jobid == 4195 || jobid == 4196 || (jobid >= 4205 && jobid <= 4210) ||
+            (jobid >= 4220 && jobid <= 4238) || jobid == 4241 || jobid == 4242 ||
+            jobid == 4244 || jobid == 4247 || jobid == 4248)
     {
         return true;
     }
@@ -47,7 +49,7 @@ bool isBaby(uint jobid) pure nothrow @safe @nogc
 
 bool isMadogear(uint jobid) pure nothrow @safe @nogc
 {
-    return jobid == 4086 || jobid == 4087 || jobid == 4112;
+    return jobid == 4086 || jobid == 4087 || jobid == 4112 || jobid == 4279;
 }
 
 
