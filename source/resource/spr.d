@@ -264,7 +264,7 @@ class SprResource : BaseResource
                 else
                 {
                     img.pixels[p] = pal[palid];
-                    img.pixels[p].a = 0xFF;
+                    img.pixels[p].a = palid == 0 ? 0x00 : 0xFF;
                 }
             }
         }
