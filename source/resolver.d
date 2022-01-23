@@ -436,7 +436,8 @@ class Resolver
         return buildPath("악세사리", gender.toString, gender.toString ~ headgearName);
     }
 
-    string garmentSprite(uint jobid, uint garmentid, Gender gender, bool checkEnglish = false)
+    string garmentSprite(uint jobid, uint garmentid, Gender gender, bool checkEnglish = false,
+            bool useFallback = false)
     {
         if (!isPlayer(jobid))
         {
@@ -458,6 +459,13 @@ class Resolver
             return "";
         }
 
-        return buildPath("로브", garmentName, gender.toString, jobname ~ "_" ~ gender.toString);
+        if (useFallback)
+        {
+            return buildPath("로브", garmentName, garmentName);
+        }
+        else
+        {
+            return buildPath("로브", garmentName, gender.toString, jobname ~ "_" ~ gender.toString);
+        }
     }
 }

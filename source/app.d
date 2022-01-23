@@ -588,17 +588,28 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
         auto garmentspritepath = resolve.garmentSprite(jobid, config.garment, config.gender);
         if (garmentspritepath.length > 0)
         {
-            import resource : ActResource;
+            import resource : ActResource, SprResource;
+
+            auto garmentactpath = garmentspritepath;
+            auto garmentsprpath = garmentactpath;
 
             if (!resManager.exists!ActResource(garmentspritepath))
             {
                 // The korean name doesn't seem to exist. Let's just try with the english name
                 // If it also doesn't exist the following try block will catch the exception.
-                garmentspritepath = resolve.garmentSprite(jobid, config.garment, config.gender, true);
+                garmentactpath = resolve.garmentSprite(jobid, config.garment, config.gender, true);
+                garmentsprpath = garmentactpath;
+            }
+            if (!resManager.exists!SprResource(garmentsprpath))
+            {
+                // We are not trying the english fallback in hope that the newer garments will follow the
+                // current implementations and use latin names for both. Only the newer garments seem
+                // to omit the duplicate .spr files for each job.
+                garmentsprpath = resolve.garmentSprite(jobid, config.garment, config.gender, false, true);
             }
             try
             {
-                auto garmentsprite = resManager.getSprite(garmentspritepath, SpriteType.garment);
+                auto garmentsprite = resManager.getSprite(garmentactpath, garmentsprpath, SpriteType.garment);
                 garmentsprite.parent(bodysprite);
                 sprites ~= garmentsprite;
             }

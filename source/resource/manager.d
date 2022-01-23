@@ -20,24 +20,29 @@ class ResourceManager
 
     Sprite getSprite(string filename, SpriteType type = SpriteType.standard)
     {
+        return getSprite(filename, filename, type);
+    }
+
+    Sprite getSprite(string actfilename, string sprfilename, SpriteType type = SpriteType.standard)
+    {
         import resource.act : ActResource;
         import resource.spr : SprResource;
 
-        auto act = this.get!ActResource(filename);
-        auto spr = this.get!SprResource(filename);
+        auto act = this.get!ActResource(actfilename);
+        auto spr = this.get!SprResource(sprfilename);
 
         act.load();
         spr.load();
 
         auto sprite = new Sprite(act, spr);
-        sprite.filename = filename;
+        sprite.filename = actfilename;
         sprite.type = type;
 
         import std.exception : enforce;
         import std.format : format;
 
         enforce!ResourceException(sprite.usable, format("Sprite's act or spr resource is not usable. " ~
-                "Making this sprite (%s) also unusable.", filename));
+                "Making this sprite (ACT: %s, SPR: %s) also unusable.", actfilename, sprfilename));
 
         return sprite;
     }
