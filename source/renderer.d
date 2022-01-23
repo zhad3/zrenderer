@@ -136,7 +136,7 @@ RawImage[] drawAction(scope Sprite sprite, uint action)
     return outputImage;
 }
 
-alias sortDelegate = void delegate(ref int[] index, uint frame);
+alias sortDelegate = void delegate(ref int[] index, uint frame, ulong maxframes);
 
 RawImage[] drawPlayer(scope Sprite[] sprites, uint action, uint frame,
         sortDelegate sortDg, immutable(Canvas) canvas)
@@ -210,7 +210,7 @@ RawImage[] drawPlayer(scope Sprite[] sprites, uint action, uint frame,
         outputImage[i - startframe].height = totalHeight;
         outputImage[i - startframe].pixels = new Color[totalWidth * totalHeight];
 
-        sortDg(sortIndex, cast(uint) i);
+        sortDg(sortIndex, cast(uint) i, maxframes);
 
         for (auto d = 0; d < sortIndex.length; ++d)
         {

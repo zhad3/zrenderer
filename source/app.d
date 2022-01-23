@@ -209,9 +209,14 @@ string[] process(immutable Config config, LogDg log, LuaState L,
             import draw : RawImage;
             import renderer : drawPlayer;
 
-            void sortIndexDelegate(ref int[] index, uint frame)
+            void sortIndexDelegate(ref int[] index, uint frame, ulong maxframes)
             {
                 int direction = config.action % 8;
+                const playerAction = intToPlayerAction(config.action);
+                if (maxframes > 3 && (playerAction == PlayerAction.stand || playerAction == PlayerAction.sit))
+                {
+                    frame = frame / (maxframes - 1);
+                }
 
                 foreach (sprite; sprites)
                 {
