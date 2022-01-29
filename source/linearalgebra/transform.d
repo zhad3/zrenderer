@@ -44,7 +44,7 @@ struct TransformMatrix
         this.rotation = radians;
     }
 
-    Matrix3 calculate() pure nothrow @safe @nogc
+    Matrix3 calculate() nothrow @safe @nogc
     {
         import linearalgebra.operations : truncate, apply;
         import std.math : round;

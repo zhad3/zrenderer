@@ -370,7 +370,7 @@ public:
     import draw : DrawObject;
 
     DrawObject drawObjectOfSprite(const scope ActSprite actsprite,
-            const scope Vector3 parentOffset = Vector3.init) const pure
+            const scope Vector3 parentOffset = Vector3.init) const
     {
         const sprimage = this.spr.image(actsprite.sprId, actsprite.sprType);
 
@@ -394,7 +394,7 @@ public:
         return drawobj;
     }
 
-    DrawObject drawObjectsOfFrame(uint action, uint frame) const pure
+    DrawObject drawObjectsOfFrame(uint action, uint frame) const
     {
         DrawObject drawObject;
         drawObject.boundingBox.toInfinity();
@@ -451,7 +451,7 @@ public:
         return drawObject;
     }
 
-    DrawObject drawObjectsOfAction(uint action) const pure
+    DrawObject drawObjectsOfAction(uint action) const
     {
         DrawObject drawObject;
         drawObject.boundingBox.toInfinity();
@@ -489,20 +489,20 @@ public:
 
     import linearalgebra : Box, TransformMatrix, PI_180;
 
-    Box boundingBoxOfSprite(uint action, uint frame, uint sprite) const pure @safe
+    Box boundingBoxOfSprite(uint action, uint frame, uint sprite) const @safe
     {
         const actsprite = this.act.sprite(action, frame, sprite);
         const sprImage = this.spr.image(actsprite.sprId, actsprite.sprType);
         return this.boundingBoxOfSprite(actsprite, sprImage.width, sprImage.height);
     }
 
-    Box boundingBoxOfSprite(const scope ActSprite actsprite) const pure @safe
+    Box boundingBoxOfSprite(const scope ActSprite actsprite) const @safe
     {
         const sprImage = this.spr.image(actsprite.sprId, actsprite.sprType);
         return this.boundingBoxOfSprite(actsprite, sprImage.width, sprImage.height);
     }
 
-    Box boundingBoxOfSprite(const scope ActSprite actsprite, uint width, uint height) const pure nothrow @safe @nogc
+    Box boundingBoxOfSprite(const scope ActSprite actsprite, uint width, uint height) const nothrow @safe @nogc
     {
         auto transform = transformOfSprite(actsprite, width, height);
         return boundingBoxOfTransform(transform);
@@ -526,7 +526,7 @@ public:
         return boundingBox;
     }
 
-    private TransformMatrix transformOfSprite(uint action, uint frame, uint sprite) const pure @safe
+    private TransformMatrix transformOfSprite(uint action, uint frame, uint sprite) const @safe
     {
         const actsprite = this.act.sprite(action, frame, sprite);
         const sprImage = this.spr.image(actsprite.sprId, actsprite.sprType);
@@ -537,7 +537,7 @@ public:
     }
 
     private TransformMatrix transformOfSprite(const scope ActSprite actsprite,
-            uint width, uint height, const scope Vector3 parentOffset = Vector3.init) const pure nothrow @safe @nogc
+            uint width, uint height, const scope Vector3 parentOffset = Vector3.init) const nothrow @safe @nogc
     {
         const mirrored = (actsprite.flags & 1);
 

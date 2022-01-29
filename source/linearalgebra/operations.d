@@ -285,12 +285,12 @@ Vector3 truncate(const scope Vector3 vector) pure nothrow @safe @nogc
     return Vector3(trunc(vector.x), trunc(vector.y), trunc(vector.z));
 }
 
-Vector2 apply(alias fun)(const scope Vector2 vector) pure nothrow @safe @nogc
+Vector2 apply(alias fun)(const scope Vector2 vector) nothrow @safe @nogc
 {
     return Vector2(fun(vector.x), fun(vector.y));
 }
 
-Vector3 apply(alias fun)(const scope Vector3 vector) pure nothrow @safe @nogc
+Vector3 apply(alias fun)(const scope Vector3 vector) nothrow @safe @nogc
 {
     return Vector3(fun(vector.x), fun(vector.y), fun(vector.z));
 }

@@ -8,7 +8,7 @@ import imageformats.png;
 import std.stdio : writefln;
 
 void drawSpriteOnImage(ref RawImage destImage, const scope DrawObject spriteObj,
-        const scope RawImage sourceImage, const scope Vector3 offset) pure @safe @nogc
+        const scope RawImage sourceImage, const scope Vector3 offset) @safe @nogc
 {
     if (spriteObj.tint.a == 0x00)
     {
