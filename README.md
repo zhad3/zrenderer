@@ -139,10 +139,17 @@ git submodule update --init
 
 Then you can build the CLI and the Server using `dub`.
 
+The automatic releases are build using LDC2. DMD seems to have issues linking (at least on Windows).  
+You can download LDC2 binaries on their Github: https://github.com/ldc-developers/ldc/releases
+
 ### CLI
-Run `dub build :cli`.
+Run `dub build --compiler=ldc2 :cli`.  
+Release build:  
+Run `dub build --compiler=ldc2 --build=release :cli`.  
 ### Server
-Run `dub build :server`.
+Run `dub build --compiler=ldc2 :server`.  
+Release build:  
+Run `dub build --compiler=ldc2 --build=release :server`.
 
 ### Extra step for Windows:
 The above commands must be executed in the [Visual Studio Developer Command Prompt](https://docs.microsoft.com/en-us/visualstudio/ide/reference/command-prompt-powershell)
