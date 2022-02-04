@@ -194,8 +194,22 @@ void corsOptionsRoute(string path, string methods)(URLRouter router)
     router.match(HTTPMethod.OPTIONS, path,
        delegate void(HTTPServerRequest req, HTTPServerResponse res) @safe
        {
+           const allowHeaders = req.headers.get("Access-Control-Request-Headers", string.init);
+           if (allowHeaders != string.init)
+           {
+                res.headers.addField("Access-Control-Allow-Headers", allowHeaders);
+                const varyHeader = res.headers.get("Vary", string.init);
+                if (varyHeader != string.init)
+                {
+                    res.headers["Vary"] = varyHeader ~ ", Access-Control-Request-Headers";
+                }
+                else
+                {
+                    res.headers.addField("Vary", "Access-Control-Request-Headers");
+                }
+           }
            res.headers.addField("Access-Control-Allow-Methods", methods);
            res.statusCode = HTTPStatus.noContent;
-           res.writeVoidBody();
+           res.writeBody("");
        });
 }
