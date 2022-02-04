@@ -9,6 +9,7 @@ import vibe.data.json;
 import vibe.http.server : HTTPServerResponse, HTTPServerRequest;
 import vibe.http.status;
 import zrenderer.server.auth : AccessToken;
+import zrenderer.server.globals : defaultConfig;
 
 void setErrorResponse(ref HTTPServerResponse res, HTTPStatus httpStatus, const scope string message = string.init)
 {
@@ -33,6 +34,43 @@ void setOkResponse(ref HTTPServerResponse res, const scope string message = stri
 void unauthorized(HTTPServerResponse res)
 {
     setErrorResponse(res, HTTPStatus.unauthorized, "Unauthorized");
+}
+
+void addCORSOriginHeader(HTTPServerRequest req, HTTPServerResponse res)
+{
+    // If Origin is not set we assume that this is not a CORS request
+    immutable origin = req.headers.get("Origin", string.init);
+    if (origin != string.init)
+    {
+        import std.algorithm.searching : canFind;
+
+        const allowOrigins = defaultConfig.allowCORSOrigin;
+
+        if (allowOrigins.length > 1)
+        {
+            res.headers.addField("Vary", "Origin");
+        }
+
+        if (allowOrigins.length > 0)
+        {
+            if (allowOrigins[0] == "*")
+            {
+                res.headers.addField("Access-Control-Allow-Origin", "*");
+            }
+            else if (allowOrigins.canFind(origin))
+            {
+                res.headers.addField("Access-Control-Allow-Origin", origin);
+            }
+            else
+            {
+                res.headers.addField("Access-Control-Allow-Origin", defaultConfig.allowCORSOrigin[0]);
+            }
+        }
+        else
+        {
+            res.headers.addField("Access-Control-Allow-Origin", "*");
+        }
+    }
 }
 
 void logCustomRequest(HTTPServerRequest req, const scope string message,

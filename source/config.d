@@ -173,5 +173,13 @@ struct Config
 
         @Desc("Access tokens file. File in which access tokens will be stored in. If the file does not exist it will be generated.")
         string tokenfile = "accesstokens.conf";
+
+        @Desc("Setting this to true will add CORS headers to all responses as well as adding an additional OPTIONS route " ~
+                "that returns the CORS headers.")
+        bool enableCORS = false;
+
+        @Desc("Comma separated list of origins that are allowed access through CORS. Set this to a single '*' to allow access " ~
+                "from any origin. Example: https://example.com.")
+        string[] allowCORSOrigin = [];
     }
 }

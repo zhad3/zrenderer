@@ -77,6 +77,10 @@ int main(string[] args)
 
     auto router = new URLRouter;
 
+    if (defaultConfig.enableCORS)
+    {
+        router.any("*", &addCORSOriginHeader);
+    }
     router.post("/render", &handleRenderRequest);
     router.get("/token/info", &getAccessTokenInfo);
     router.get("/admin/tokens", &getAccessTokens);
@@ -84,6 +88,15 @@ int main(string[] args)
     router.post("/admin/tokens/:id", &modifyAccessToken);
     router.delete_("/admin/tokens/:id", &revokeAccessToken);
     router.get("/admin/health", &getHealth);
+
+    if (defaultConfig.enableCORS)
+    {
+        router.corsOptionsRoute!("/render", "POST");
+        router.corsOptionsRoute!("/token/info", "GET");
+        router.corsOptionsRoute!("/admin/tokens", "GET, POST");
+        router.corsOptionsRoute!("/admin/tokens/:id", "POST, DELETE");
+        router.corsOptionsRoute!("/admin/health", "GET");
+    }
 
     auto settings = new HTTPServerSettings;
     settings.bindAddresses = config.hosts;
@@ -174,4 +187,15 @@ LogLevel toVibeLogLevel(zLogLevel loglevel) pure nothrow @safe @nogc
         default:
             return LogLevel.min;
     }
+}
+
+void corsOptionsRoute(string path, string methods)(URLRouter router)
+{
+    router.match(HTTPMethod.OPTIONS, path,
+       delegate void(HTTPServerRequest req, HTTPServerResponse res) @safe
+       {
+           res.headers.addField("Access-Control-Allow-Methods", methods);
+           res.statusCode = HTTPStatus.noContent;
+           res.writeVoidBody();
+       });
 }

@@ -52,6 +52,8 @@ A tool to render sprites from Ragnarok Online
                     --port Port of the server. Default: 11011
                  --logfile Log file to write to. E.g. /var/log/zrenderer.log. Leaving it empty will log to stdout. Default: 
                --tokenfile Access tokens file. File in which access tokens will be stored in. If the file does not exist it will be generated. Default: accesstokens.conf
+              --enableCORS Setting this to true will add CORS headers to all responses as well as adding an additional OPTIONS route that returns the CORS headers. Default: false
+         --allowCORSOrigin Comma separated list of origins that are allowed access through CORS. Set this to a single '*' to allow access from any origin. Example: https://example.com. Default: 
 -h                  --help This help information.
 ```
 Options _hosts_, _port_, _logfile_ and _tokenfile_ are ignored for the CLI tool.
