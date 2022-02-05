@@ -342,6 +342,13 @@ Sprite[] processNonPlayer(uint jobid, LogDg log, immutable Config config, Resolv
 
         const gender = (jobid - 6017) <= 9 ? Gender.female : Gender.male;
 
+        const numBodyFrames = jobsprite.act.numberOfFrames(config.action);
+        if (numBodyFrames <= 1)
+        {
+            // Force using the first frame for actions such as FREEZE, DEAD & FREEZE2
+            requestFrame = 0;
+        }
+
         // Attach head to mercenary. Gender is derived from the job id
         auto headspritepath = resolve.playerHeadSprite(jobid, config.head, gender);
         if (headspritepath.length > 0)
@@ -477,6 +484,12 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
     }
 
     interval = bodysprite.act.action(config.action).interval;
+    const numBodyFrames = bodysprite.act.numberOfFrames(config.action);
+    if (numBodyFrames <= 1)
+    {
+        // Force using the first frame for actions such as FREEZE, DEAD & FREEZE2
+        requestFrame = 0;
+    }
 
     Sprite[] sprites;
     sprites.reserve(10);
