@@ -54,6 +54,9 @@ A tool to render sprites from Ragnarok Online
                --tokenfile Access tokens file. File in which access tokens will be stored in. If the file does not exist it will be generated. Default: accesstokens.conf
               --enableCORS Setting this to true will add CORS headers to all responses as well as adding an additional OPTIONS route that returns the CORS headers. Default: false
          --allowCORSOrigin Comma separated list of origins that are allowed access through CORS. Set this to a single '*' to allow access from any origin. Example: https://example.com. Default: 
+               --enableSSL Whether to use TLS/SSL to secure the connection. You will also need to set the certificate and private key when enabling this setting. We recommend not enabling this feature but instead use a reverse proxy that handles HTTPS for you. Default: false
+    --certificateChainFile Path to the certificate chain file used by TLS/SSL. Default: 
+          --privateKeyFile Path to the private key file used by TLS/SSL. Default: 
 -h                  --help This help information.
 ```
 Options _hosts_, _port_, _logfile_ and _tokenfile_ are ignored for the CLI tool.

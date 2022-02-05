@@ -181,5 +181,16 @@ struct Config
         @Desc("Comma separated list of origins that are allowed access through CORS. Set this to a single '*' to allow access " ~
                 "from any origin. Example: https://example.com.")
         string[] allowCORSOrigin = [];
+
+        @Desc("Whether to use TLS/SSL to secure the connection. You will also need to set the certificate and private key when " ~
+                "enabling this setting. We recommend not enabling this feature but instead use a reverse proxy that handles HTTPS " ~
+                "for you.")
+        bool enableSSL = false;
+
+        @Desc("Path to the certificate chain file used by TLS/SSL.")
+        string certificateChainFile = "";
+
+        @Desc("Path to the private key file used by TLS/SSL.")
+        string privateKeyFile = "";
     }
 }

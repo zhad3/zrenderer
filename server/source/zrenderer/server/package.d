@@ -102,6 +102,16 @@ int main(string[] args)
     settings.bindAddresses = config.hosts;
     settings.port = config.port;
     settings.accessLogToConsole = true;
+
+    if (defaultConfig.enableSSL)
+    {
+        import vibe.stream.tls : createTLSContext, TLSContextKind;
+
+        settings.tlsContext = createTLSContext(TLSContextKind.server);
+        settings.tlsContext.useCertificateChainFile(defaultConfig.certificateChainFile);
+        settings.tlsContext.usePrivateKeyFile(defaultConfig.privateKeyFile);
+    }
+
     auto listener = listenHTTP(settings, router);
 
     import vibe.core.args : finalizeCommandLineOptions;
