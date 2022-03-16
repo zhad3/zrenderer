@@ -42,7 +42,9 @@ string toString(LogLevel ll) pure nothrow @safe
 
 class BasicLogger
 {
-    private this() {}
+    private this(LogLevel ll) {
+        _ll = ll;
+    }
 
     private __gshared BasicLogger _instance;
     private static bool _instantiated;
@@ -50,7 +52,7 @@ class BasicLogger
 
     private LogLevel _ll;
 
-    static BasicLogger get()
+    static BasicLogger get(LogLevel ll)
     {
         if (!_instantiated)
         {
@@ -58,7 +60,7 @@ class BasicLogger
             {
                 if (!_instance)
                 {
-                    _instance = new BasicLogger();
+                    _instance = new BasicLogger(ll);
                     _mutex = new Mutex();
                 }
 
@@ -71,25 +73,28 @@ class BasicLogger
 
     void log(A...)(LogLevel logLevel, lazy A args) const @trusted
     {
-        synchronized (_mutex)
+        if (logLevel >= _ll)
         {
-            auto msg = appender!string();
-
-            msg.formattedWrite("[%s] ", logLevel.toString());
-            foreach (arg; args)
+            synchronized (_mutex)
             {
-                msg.formattedWrite("%s", arg);
-            }
+                auto msg = appender!string();
 
-            import std.stdio : stdout, stderr;
+                msg.formattedWrite("[%s] ", logLevel.toString());
+                foreach (arg; args)
+                {
+                    msg.formattedWrite("%s", arg);
+                }
 
-            if (logLevel > logLevel.warning)
-            {
-                stderr.writeln(msg.data);
-            }
-            else
-            {
-                stdout.writeln(msg.data);
+                import std.stdio : stdout, stderr;
+
+                if (logLevel > logLevel.warning)
+                {
+                    stderr.writeln(msg.data);
+                }
+                else
+                {
+                    stdout.writeln(msg.data);
+                }
             }
         }
     }

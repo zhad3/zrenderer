@@ -190,6 +190,7 @@ string[] process(immutable Config config, LogDg log, LuaState L,
 
             if (shouldDrawShadow(config.enableShadow, jobid, config.action))
             {
+                log(LogLevel.trace, "Loading Shadow");
                 auto shadowsprite = resManager.getSprite("shadow", SpriteType.shadow);
                 shadowsprite.zIndex = -1;
                 shadowsprite.loadImagesOfFrame(0, 0);
@@ -321,6 +322,7 @@ Sprite[] processNonPlayer(uint jobid, LogDg log, immutable Config config, Resolv
 
     try
     {
+        log(LogLevel.trace, "Loading Body " ~ jobspritepath);
         jobsprite = resManager.getSprite(jobspritepath);
         jobsprite.zIndex = 0;
     }
@@ -353,6 +355,7 @@ Sprite[] processNonPlayer(uint jobid, LogDg log, immutable Config config, Resolv
         auto headspritepath = resolve.playerHeadSprite(jobid, config.head, gender);
         if (headspritepath.length > 0)
         {
+            log(LogLevel.trace, "Loading Head " ~ headspritepath);
             auto headsprite = resManager.getSprite(headspritepath);
             headsprite.zIndex = 1;
             headsprite.parent(jobsprite);
@@ -376,6 +379,7 @@ Sprite[] processNonPlayer(uint jobid, LogDg log, immutable Config config, Resolv
             {
                 try
                 {
+                    log(LogLevel.trace, "Loading Weapon " ~ weaponspritepath);
                     auto weaponsprite = resManager.getSprite(weaponspritepath, SpriteType.weapon);
                     weaponsprite.typeOrder = 0;
                     weaponsprite.zIndex = 2;
@@ -383,6 +387,7 @@ Sprite[] processNonPlayer(uint jobid, LogDg log, immutable Config config, Resolv
 
                     if (jobid < 6017 || jobid > 6026)
                     {
+                        log(LogLevel.trace, "Loading Weapon Slash " ~ weaponspritepath ~ "_검광");
                         // Weapon Slash only for lancer & swordsman
                         auto weaponslashsprite = resManager.getSprite(weaponspritepath ~ "_검광", SpriteType.weapon);
                         weaponslashsprite.typeOrder = 1;
@@ -411,6 +416,7 @@ Sprite[] processNonPlayer(uint jobid, LogDg log, immutable Config config, Resolv
                     const headgearspritepath = resolve.headgearSprite(config.headgear[h], gender);
                     try
                     {
+                        log(LogLevel.trace, "Loading Headgear " ~ headgearspritepath);
                         auto headgearsprite = resManager.getSprite(headgearspritepath, SpriteType.accessory);
                         headgearsprite.typeOrder = h;
                         headgearsprite.zIndex = 4 + h;
@@ -475,7 +481,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
 
     try
     {
-        bodysprite = loadBodySprite(jobid, config.outfit, config.gender, resolve, resManager);
+        bodysprite = loadBodySprite(jobid, config.outfit, config.gender, resolve, resManager, log);
     }
     catch (ResourceException err)
     {
@@ -501,6 +507,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
 
     try
     {
+        log(LogLevel.trace, "Loading Head " ~ headspritepath);
         headsprite = resManager.getSprite(headspritepath, SpriteType.playerhead);
         headsprite.parent(bodysprite);
         headsprite.headdir = config.headdir;
@@ -518,11 +525,13 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
         {
             try
             {
+                log(LogLevel.trace, "Loading Weapon " ~ weaponspritepath);
                 auto weaponsprite = resManager.getSprite(weaponspritepath, SpriteType.weapon);
                 weaponsprite.typeOrder = 0;
                 sprites ~= weaponsprite;
 
                 // Weapon Slash
+                log(LogLevel.trace, "Loading Weapon Slash " ~ weaponspritepath ~ "_검광");
                 auto weaponslashsprite = resManager.getSprite(weaponspritepath ~ "_검광", SpriteType.weapon);
                 weaponslashsprite.typeOrder = 1;
                 sprites ~= weaponslashsprite;
@@ -541,6 +550,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
         {
             try
             {
+                log(LogLevel.trace, "Loading Shield " ~ shieldspritepath);
                 auto shieldsprite = resManager.getSprite(shieldspritepath, SpriteType.shield);
                 sprites ~= shieldsprite;
             }
@@ -564,6 +574,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
                 const headgearspritepath = resolve.headgearSprite(config.headgear[h], config.gender);
                 try
                 {
+                    log(LogLevel.trace, "Loading Headgear " ~ headgearspritepath);
                     auto headgearsprite = resManager.getSprite(headgearspritepath, SpriteType.accessory);
                     headgearsprite.typeOrder = h;
                     headgearsprite.parent(bodysprite);
@@ -622,6 +633,8 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
             }
             try
             {
+                log(LogLevel.trace, "Loading Garment (act) " ~ garmentactpath);
+                log(LogLevel.trace, "Loading Garment (spr) " ~ garmentsprpath);
                 auto garmentsprite = resManager.getSprite(garmentactpath, garmentsprpath, SpriteType.garment);
                 garmentsprite.parent(bodysprite);
                 sprites ~= garmentsprite;
@@ -645,6 +658,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
         {
             try
             {
+                log(LogLevel.trace, "Loading Body Palette " ~ bodypalettepath);
                 bodypalette = resManager.get!PaletteResource(bodypalettepath);
                 bodypalette.load();
             }
@@ -662,6 +676,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
         {
             try
             {
+                log(LogLevel.trace, "Loading Head Palette " ~ headpalettepath);
                 headpalette = resManager.get!PaletteResource(headpalettepath);
                 headpalette.load();
             }
@@ -759,7 +774,7 @@ bool shouldDrawShadow(bool enableShadow, uint jobid, uint action) pure nothrow @
 
 /// Throws ResourceException
 private Sprite loadBodySprite(uint jobid, uint outfitid, const scope Gender gender,
-        Resolver resolve, ResourceManager resManager)
+        Resolver resolve, ResourceManager resManager, LogDg log)
 {
     string bodyspritepath;
     Sprite bodysprite;
@@ -773,6 +788,7 @@ private Sprite loadBodySprite(uint jobid, uint outfitid, const scope Gender gend
         {
             try
             {
+                log(LogLevel.trace, "Loading Body " ~ bodyspritepath);
                 bodysprite = resManager.getSprite(bodyspritepath, SpriteType.playerbody);
                 useOutfit = true;
             }
@@ -793,6 +809,7 @@ private Sprite loadBodySprite(uint jobid, uint outfitid, const scope Gender gend
         enforce!ResourceException(bodyspritepath.length > 0,
                 format("Couldn't resolve player body sprite for job %d and gender %s", jobid, gender));
 
+        log(LogLevel.trace, "Loading Body " ~ bodyspritepath);
         bodysprite = resManager.getSprite(bodyspritepath, SpriteType.playerbody);
     }
 

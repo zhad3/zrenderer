@@ -56,7 +56,7 @@ int main(string[] args)
 
     createOutputDirectory(config.outdir);
 
-    auto logger = BasicLogger.get();
+    auto logger = BasicLogger.get(config.loglevel);
 
     void consoleLogger(LogLevel logLevel, string msg)
     {
