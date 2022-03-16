@@ -236,7 +236,7 @@ RawImage[] drawPlayer(scope Sprite[] sprites, uint action, uint frame,
                 actionindex = 0;
                 frameindex = 0;
             }
-            else if ((sprite.type == SpriteType.playerhead || sprite.type == SpriteType.accessory) &&
+            else if ((sprite.type == SpriteType.playerhead || sprite.type == SpriteType.accessory || sprite.type == SpriteType.garment) &&
                     (playerAction == PlayerAction.stand || playerAction == PlayerAction.sit))
             {
                 import config : HeadDirection, toInt;
@@ -244,7 +244,11 @@ RawImage[] drawPlayer(scope Sprite[] sprites, uint action, uint frame,
                 if (!drawSingleFrame && maxframes >= 3)
                 {
                     const frameCountOfCurrentSprite = sprite.act.frames(action).length;
-                    if (sprite.headdir != HeadDirection.all)
+                    if (sprite.type == SpriteType.garment)
+                    {
+                        frameindex = i % maxframes;
+                    }
+                    else if (sprite.headdir != HeadDirection.all)
                     {
                         frameoffset = sprite.headdir.toInt() * frameCountOfCurrentSprite / 3;
                     }

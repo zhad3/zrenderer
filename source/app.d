@@ -636,8 +636,14 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
                 log(LogLevel.trace, "Loading Garment (act) " ~ garmentactpath);
                 log(LogLevel.trace, "Loading Garment (spr) " ~ garmentsprpath);
                 auto garmentsprite = resManager.getSprite(garmentactpath, garmentsprpath, SpriteType.garment);
-                garmentsprite.parent(bodysprite);
+                //garmentsprite.parent(bodysprite); // Apparently garments are not attached to the body?
                 sprites ~= garmentsprite;
+
+                // Set to all frames if garment has more frames
+                if (garmentsprite.act.frames(config.action).length > 3)
+                {
+                    overwriteFrame = false;
+                }
             }
             catch (ResourceException err)
             {
