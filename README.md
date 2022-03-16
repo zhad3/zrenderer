@@ -156,6 +156,12 @@ Run `dub build --compiler=ldc2 :server`.
 Release build:  
 Run `dub build --compiler=ldc2 --build=release :server`.
 
+To add outlines to the sprites boxes for debugging purposes add `--debug=outline` to the build command:  
+`dub build --compiler=ldc2 --debug=outline :cli`
+
+Example output:  
+![Clown](examples/4075_0.png)
+
 ### Extra step for Windows:
 The above commands must be executed in the [Visual Studio Developer Command Prompt](https://docs.microsoft.com/en-us/visualstudio/ide/reference/command-prompt-powershell)
 which will be available when installing the Build Tools for Visual Studio (see above).

@@ -41,7 +41,7 @@ void drawSpriteOnImage(ref RawImage destImage, const scope DrawObject spriteObj,
 
         auto outputPixel = &destImage.pixels[outputIndex];
 
-        debug {
+        debug(outline) {
             if (transformedX == 0 || transformedX == transformedWidth - 1 ||
                     transformedY == 0 || transformedY == transformedHeight - 1)
             {
@@ -114,7 +114,7 @@ RawImage[] drawAction(scope Sprite sprite, uint action)
 
         drawFrameOnImage(outputImage[i], sprite, action, cast(uint) i, frameobj, offset);
 
-        debug
+        debug(outline)
         {
             import std.math : floor;
 
@@ -297,7 +297,7 @@ RawImage[] drawPlayer(scope Sprite[] sprites, uint action, uint frame,
             drawFrameOnImage(outputImage[i - startframe], sprites[sortIndex[d]], actionindex,
                     cast(uint) (frameindex + frameoffset), frameobj, offset);
 
-            debug
+            debug(outline)
             {
                 import std.math : floor;
 
