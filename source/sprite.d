@@ -542,11 +542,15 @@ public:
         const mirrored = (actsprite.flags & 1);
 
         TransformMatrix transform;
-        transform.setOrigin(0.5, 0.5);
-        transform.setSize(width - (mirrored * 0.5), height); // Dirty hack to fix rounding errors on mirrored sprites
-        transform.scale(actsprite.xScale * (mirrored > 0 ? -1f : 1f), actsprite.yScale);
-        transform.translate(actsprite.x + parentOffset.x, actsprite.y + parentOffset.y);
-        transform.rotate(actsprite.rotation * PI_180);
+
+        if (actsprite.tint.a() != 0)
+        {
+            transform.setOrigin(0.5, 0.5);
+            transform.setSize(width - (mirrored * 0.5), height); // Dirty hack to fix rounding errors on mirrored sprites
+            transform.scale(actsprite.xScale * (mirrored > 0 ? -1f : 1f), actsprite.yScale);
+            transform.translate(actsprite.x + parentOffset.x, actsprite.y + parentOffset.y);
+            transform.rotate(actsprite.rotation * PI_180);
+        }
 
         transform.calculate();
 
