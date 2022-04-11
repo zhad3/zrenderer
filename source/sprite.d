@@ -147,6 +147,7 @@ int zIndexForGarmentSprite(uint jobid, uint garmentid, uint action, uint frame,
 {
     import luad.lfunction : LuaFunction;
 
+
     auto drawOnTopFunc = L.get!LuaFunction("_New_DrawOnTop");
 
     bool onTop = drawOnTopFunc.call!bool(garmentid, gender.toInt(), jobid, action, frame);
@@ -155,12 +156,20 @@ int zIndexForGarmentSprite(uint jobid, uint garmentid, uint action, uint frame,
 
     if (onTop)
     {
-        return topLeft ? 16 : 11;
+        auto isTopLayerFunc = L.get!LuaFunction("IsTopLayer");
+        bool isTopLayer = isTopLayerFunc.call!bool(garmentid);
+        if (isTopLayer)
+        {
+            return 25;
+        }
+        else if (topLeft)
+        {
+            return 16;
+        }
+        return 11;
     }
-    else
-    {
-        return 5;
-    }
+
+    return 5;
 }
 
 class Sprite
