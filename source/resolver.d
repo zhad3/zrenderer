@@ -82,13 +82,15 @@ class Resolver
     private void loadData()
     {
         import std.file : readText;
-        import std.string : splitLines;
+        import std.string : splitLines, lineSplitter;
+        import std.algorithm : map;
+        import std.array : array;
 
-        this._imfNames = readText("resolver_data/imf_names.txt").splitLines;
-        this._jobNamesPlayer = readText("resolver_data/job_names.txt").splitLines;
-        this._jobNamesPalette = readText("resolver_data/job_pal_names.txt").splitLines;
-        this._jobNamesWeapon = readText("resolver_data/job_weapon_names.txt").splitLines;
-        this._shieldNames = readText("resolver_data/shield_names.txt").splitLines;
+        this._imfNames = readText("resolver_data/imf_names.txt").lineSplitter.map!(toLower).array;
+        this._jobNamesPlayer = readText("resolver_data/job_names.txt").lineSplitter.map!(toLower).array;
+        this._jobNamesPalette = readText("resolver_data/job_pal_names.txt").lineSplitter.map!(toLower).array;
+        this._jobNamesWeapon = readText("resolver_data/job_weapon_names.txt").lineSplitter.map!(toLower).array;
+        this._shieldNames = readText("resolver_data/shield_names.txt").lineSplitter.map!(toLower).array;
     }
 
     string jobSpriteName(uint jobid)
@@ -274,6 +276,40 @@ class Resolver
                 return buildPath("몸",
                         this._jobNamesPalette[jobid] ~ "_" ~ gender.toString ~ "_" ~ paletteid
                         .to!string);
+            }
+        }
+
+        return "";
+    }
+
+    string bodyAltPalette(uint jobid, uint paletteid, Gender gender, uint costumeid)
+    {
+        if (!isPlayer(jobid))
+        {
+            return "";
+        }
+
+        bool doram = isDoram(jobid);
+
+        if (jobid > 4000)
+        {
+            jobid -= AdvancedJobIndex;
+        }
+        if (jobid < this._jobNamesPalette.length)
+        {
+            auto costume = costumeid.to!string;
+            if (doram)
+            {
+                return buildPath("도람족",
+                        "body",
+                        "costume_" ~ costume,
+                        this._jobNamesPalette[jobid] ~ "_" ~ gender.toString ~ "_" ~ paletteid.to!string ~ "_" ~ costume);
+            }
+            else
+            {
+                return buildPath("몸",
+                        "costume_" ~ costume,
+                        this._jobNamesPalette[jobid] ~ "_" ~ gender.toString ~ "_" ~ paletteid.to!string ~ "_" ~ costume);
             }
         }
 

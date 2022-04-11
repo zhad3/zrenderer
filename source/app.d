@@ -478,10 +478,11 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
         (playerAction == PlayerAction.stand || playerAction == PlayerAction.sit);
 
     Sprite bodysprite;
+    bool useOutfit = false;
 
     try
     {
-        bodysprite = loadBodySprite(jobid, config.outfit, config.gender, resolve, resManager, log);
+        bodysprite = loadBodySprite(jobid, config.outfit, config.gender, resolve, resManager, log, useOutfit);
     }
     catch (ResourceException err)
     {
@@ -659,7 +660,16 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
 
     if (config.bodyPalette > -1)
     {
-        auto bodypalettepath = resolve.bodyPalette(jobid, config.bodyPalette, config.gender);
+        string bodypalettepath;
+        if (config.outfit > 0 && useOutfit)
+        {
+            bodypalettepath = resolve.bodyAltPalette(jobid, config.bodyPalette, config.gender, config.outfit);
+        }
+        else
+        {
+            bodypalettepath = resolve.bodyPalette(jobid, config.bodyPalette, config.gender);
+        }
+
         if (bodypalettepath.length > 0)
         {
             try
@@ -780,12 +790,12 @@ bool shouldDrawShadow(bool enableShadow, uint jobid, uint action) pure nothrow @
 
 /// Throws ResourceException
 private Sprite loadBodySprite(uint jobid, uint outfitid, const scope Gender gender,
-        Resolver resolve, ResourceManager resManager, LogDg log)
+        Resolver resolve, ResourceManager resManager, LogDg log, out bool useOutfit)
 {
     string bodyspritepath;
     Sprite bodysprite;
 
-    bool useOutfit = false;
+    useOutfit = false;
 
     if (outfitid > 0)
     {
