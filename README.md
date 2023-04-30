@@ -130,6 +130,35 @@ When building for the first time libpng and lua5.1 will be compiled which requir
 
 When available choose the dev versions of the packages.
 
+#### OpenSSL 3.x.x
+If you are using `openssl version 3.x.x`, you need to update [vibe-d](https://github.com/vibe-d/vibe.d/releases) and [dub](https://github.com/dlang/dub/releases).
+
+First get the `vibe-d version 0.9.6` or higher. If you download the files manually, unzip in your `/root` folder.
+
+Get the `dub version 1.30.0` or higher. If you download the files manually, unzip in your `/root` folder.
+
+Now modify the `zrenderer/server/dub.json` and/or `zrenderer/cli/dub.json`
+and bump the version to 0.9.6:
+```diff
+"dependencies": {
+    "zconfig": "~>1.0",
+    "libpng-apng": "~>1.0",
+    "luad": {"path": "../LuaD/"},
+    "zencoding:windows949": "~>1.0",
+-   "vibe-d:http": "==0.9.3"
++   "vibe-d:http": "==0.9.6"
+},
+```
+Then:
+```
+$ cd zrenderer/server
+$ dub upgrade
+$ cd ..
+$ cd zrenderer/cli
+$ dub upgrade
+$ cd ..
+```
+
 ## Windows
 [Build Tools for Visual Studio](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019)
 
