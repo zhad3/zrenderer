@@ -131,13 +131,11 @@ When building for the first time libpng and lua5.1 will be compiled which requir
 When available choose the dev versions of the packages.
 
 #### OpenSSL 3.x.x
-If you are using `openssl version 3.x.x`, you need to update [vibe-d](https://github.com/vibe-d/vibe.d/releases) and [dub](https://github.com/dlang/dub/releases).
+If you are using `openssl version 3.x.x`, you need to update [dub](https://github.com/dlang/dub/releases).
 
-First get the `vibe-d version 0.9.6` or higher. If you download the files manually, unzip in your `/root` folder.
+Get `dub version 1.30.0` or higher. If you download the files manually, unzip them to a directory of your choosing. You will need to use this version of dub when trying to build `zrenderer`.
 
-Get the `dub version 1.30.0` or higher. If you download the files manually, unzip in your `/root` folder.
-
-Now modify the `zrenderer/server/dub.json` and/or `zrenderer/cli/dub.json`
+Now modify `zrenderer/server/dub.json`
 and bump the version to 0.9.6:
 ```diff
 "dependencies": {
@@ -149,12 +147,9 @@ and bump the version to 0.9.6:
 +   "vibe-d:http": "==0.9.6"
 },
 ```
-Then:
+Then using dub version 1.30.0+:
 ```
 $ cd zrenderer/server
-$ dub upgrade
-$ cd ..
-$ cd zrenderer/cli
 $ dub upgrade
 $ cd ..
 ```
