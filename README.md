@@ -110,9 +110,9 @@ In a terminal run the following command to get up and running:
 
 ```
 docker run -d --name zrenderer \
-  -v ./zrenderer.docker.conf:/home/zrenderer/zrenderer.conf \
-  -v ./output:/home/zrenderer/output \
-  -v ./my-resources:/home/zrenderer/resources \
+  -v ./zrenderer.docker.conf:/zren/zrenderer.conf \
+  -v ./output:/zren/output \
+  -v ./my-resources:/zren/resources \
   -p 11011:11011 \
   zhade/zrenderer:latest
 ```
