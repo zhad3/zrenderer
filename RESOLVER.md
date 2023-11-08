@@ -149,8 +149,8 @@ Body (+outfits) and head sprites can be colored via palettes. These are resolved
         <code>jobname</code>=<a href="https://github.com/zhad3/zrenderer/blob/main/resolver_data/job_pal_names.txt">job_pal_names.txt</a> (Line #&lt;bodyPalette&gt;)<br><br>
         Human: <code>data/palette/몸/&lt;jobname&gt;_&lt;gender&gt;_&lt;bodyPalette&gt;.pal</code><br>
         Doram: <code>data/palette/도람족/body/&lt;jobname&gt;_&lt;gender&gt;_&lt;bodyPalette&gt;.pal</code><br>
-        Human (outfit): <code>data/palette/몸/costume_&lt;outfit/&gt;&lt;jobname&gt;_&lt;gender&gt;_&lt;bodyPalette&gt;_&lt;outfit&gt;.pal</code><br>
-        Doram (outfit): <code>data/palette/도람족/body/costume_&lt;outfit/&gt;&lt;jobname&gt;_&lt;gender&gt;_&lt;bodyPalette&gt;_&lt;outfit&gt;.pal</code>
+        Human (outfit): <code>data/palette/몸/costume_&lt;outfit&gt;/&lt;jobname&gt;_&lt;gender&gt;_&lt;bodyPalette&gt;_&lt;outfit&gt;.pal</code><br>
+        Doram (outfit): <code>data/palette/도람족/body/costume_&lt;outfit&gt;/&lt;jobname&gt;_&lt;gender&gt;_&lt;bodyPalette&gt;_&lt;outfit&gt;.pal</code>
       </td>
     </tr>
     <tr>
