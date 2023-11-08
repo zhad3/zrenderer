@@ -2,6 +2,8 @@
 ## About this document
 Details about how the resolver is looking up the resources to draw the sprite from the input variables.
 
+Almost everything written here is taken directly from the source code [resolver.d](https://github.com/zhad3/zrenderer/blob/main/source/resolver.d).
+
 ## Sprite types
 As of this writing there are the following sprite types that can be composed to a fully rendered image:
 
@@ -52,7 +54,9 @@ Preface: Gender is used in a lot of places and is interpreted as following:
         Monster: <code>data/sprite/몬스터/&lt;jobname&gt;.{spr,act}</code><br>
         NPC: <code>data/sprite/npc/&lt;jobname&gt;.{spr,act}</code><br>
         Mercenary: <code>data/sprite/인간족/몸통/&lt;jobname&gt;.{spr,act}</code><br>
-        Homunculus: <code>data/sprite/homun/&lt;jobname&gt;.{spr,act}</code>
+        Homunculus: <code>data/sprite/homun/&lt;jobname&gt;.{spr,act}</code><br><br>
+
+        <i>Hint: For the differentiation between the nonplayer job ids have a look at [resolver.d](https://github.com/zhad3/zrenderer/blob/main/source/resolver.d).</i>
       </td>
     </tr>
     <tr>
@@ -124,7 +128,7 @@ Preface: Gender is used in a lot of places and is interpreted as following:
     <tr>
       <td>Shadow</td>
       <td>--enableShadow</td>
-      <td>Shadow: <code>data/sprite/shadow.{spr,act}
+      <td>Shadow: <code>data/sprite/shadow.{spr,act}</code></td>
     </tr>
   </tbody>
 </table>
@@ -146,8 +150,8 @@ Body (+outfits) and head sprites can be colored via palettes. These are resolved
         <code>jobname</code>=<a href="https://github.com/zhad3/zrenderer/blob/main/resolver_data/job_pal_names.txt">job_pal_names.txt</a> (Line #&lt;bodyPalette&gt;)<br><br>
         Human: <code>data/palette/몸/&lt;jobname&gt;_&lt;gender&gt;_&lt;bodyPalette&gt;.pal</code><br>
         Doram: <code>data/palette/도람족/body/&lt;jobname&gt;_&lt;gender&gt;_&lt;bodyPalette&gt;.pal</code><br>
-        Human (outfit): <code>data/palette/몸/costume_&lt;outfit&gt;&lt;jobname&gt;_&lt;gender&gt;_&lt;bodyPalette&gt;_&lt;outfit&gt;.pal</code><br>
-        Doram (outfit): <code>data/palette/도람족/body/costume_&lt;outfit&gt;&lt;jobname&gt;_&lt;gender&gt;_&lt;bodyPalette&gt;_&lt;outfit&gt;.pal</code>
+        Human (outfit): <code>data/palette/몸/costume_&lt;outfit/&gt;&lt;jobname&gt;_&lt;gender&gt;_&lt;bodyPalette&gt;_&lt;outfit&gt;.pal</code><br>
+        Doram (outfit): <code>data/palette/도람족/body/costume_&lt;outfit/&gt;&lt;jobname&gt;_&lt;gender&gt;_&lt;bodyPalette&gt;_&lt;outfit&gt;.pal</code>
       </td>
     </tr>
     <tr>
