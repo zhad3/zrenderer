@@ -88,6 +88,8 @@ Result:
 | --- |
 | ![Novice](examples/0_93.png) |
 
+
+If you're wondering how these IDs get mapped to the actual sprites take a look at [RESOLVER.md](RESOLVER.md).
 ## Server
 `./zrenderer-server -h`
 ```
