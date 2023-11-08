@@ -55,7 +55,6 @@ Preface: Gender is used in a lot of places and is interpreted as following:
         NPC: <code>data/sprite/npc/&lt;jobname&gt;.{spr,act}</code><br>
         Mercenary: <code>data/sprite/인간족/몸통/&lt;jobname&gt;.{spr,act}</code><br>
         Homunculus: <code>data/sprite/homun/&lt;jobname&gt;.{spr,act}</code><br><br>
-
         <i>Hint: For the differentiation between the nonplayer job ids have a look at <a href="https://github.com/zhad3/zrenderer/blob/main/source/resolver.d">resolver.d</a>.</i>
       </td>
     </tr>
