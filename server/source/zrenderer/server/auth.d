@@ -146,7 +146,15 @@ Nullable!AccessToken checkAuth(HTTPServerRequest req, AccessTokenDB tokens) @saf
         return Nullable!AccessToken.init;
     }
 
-    return tokens.getByToken(tokenString);
+    auto token = tokens.getByToken(tokenString);
+
+    if (!token.isNull)
+    {
+        // Placing the token description into the request allows us to include it in the access log
+        req.headers["x-token-desc"] = token.get.description;
+    }
+
+    return token;
 }
 
 AccessTokenDB parseAccessTokensFile(const scope string filename)

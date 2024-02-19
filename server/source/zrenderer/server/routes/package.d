@@ -87,8 +87,7 @@ void logCustomRequest(HTTPServerRequest req, const scope string message,
             req.username.length > 0 ? req.username : "-",
             req.timeCreated.toSimpleString(),
             message,
-            accessToken.isNull ? "-" : format("%s Id: %u Desc: %s",
-                accessToken.get.token,
+            accessToken.isNull ? "-" : format("Id: %u Desc: %s",
                 accessToken.get.id,
                 accessToken.get.description));
 

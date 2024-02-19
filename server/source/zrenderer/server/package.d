@@ -10,6 +10,7 @@ import vibe.core.core;
 import vibe.core.log : LogLevel;
 import vibe.http.router;
 import vibe.http.server;
+import vibe.http.log : HTTPLogger;
 import zconfig : initializeConfig, getConfigArguments;
 import zrenderer.server.auth;
 import zrenderer.server.globals : defaultConfig, accessTokens;
@@ -101,7 +102,8 @@ int main(string[] args)
     auto settings = new HTTPServerSettings;
     settings.bindAddresses = config.hosts;
     settings.port = config.port;
-    settings.accessLogToConsole = true;
+    settings.accessLogFormat = "%h - %u %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" \"%{x-token-desc}i\"";
+    settings.accessLogger = new MaskedConsoleLogger(settings, settings.accessLogFormat);
 
     if (defaultConfig.enableSSL)
     {
@@ -196,6 +198,25 @@ LogLevel toVibeLogLevel(zLogLevel loglevel) pure nothrow @safe @nogc
             return LogLevel.none;
         default:
             return LogLevel.min;
+    }
+}
+
+class MaskedConsoleLogger : HTTPLogger
+{
+    import std.regex : regex, replaceAll;
+
+    auto accesstokenRegex = regex(r"(accesstoken=)([^&\n\r\t\s]+)");
+
+    this(HTTPServerSettings settings, string format)
+    {
+        super(settings, format);
+    }
+
+    override void writeLine(const(char)[] ln)
+    {
+        import vibe.core.log : logInfo;
+
+        logInfo("%s", replaceAll(ln, accesstokenRegex, "$1***"));
     }
 }
 
