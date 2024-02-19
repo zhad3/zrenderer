@@ -97,7 +97,7 @@ class LuaResource : BaseResource
         }
         catch (LuaErrorException err)
         {
-            throw new ResourceException(err.msg);
+            throw new ResourceException("While loading lua resource \"" ~ this.filename ~ "\": " ~ err.msg);
         }
     }
 }
