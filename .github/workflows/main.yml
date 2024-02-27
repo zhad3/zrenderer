@@ -32,7 +32,7 @@ jobs:
           echo GIT_REF_TAG=$GIT_REF_TAG
           echo INPUT_TAG=$INPUT_TAG
           echo VERSION=$VERSION
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Checking if the provided VERSION is valid: git rev-parse --verify $VERSION"
           git rev-parse --verify "$VERSION"
 
@@ -61,8 +61,6 @@ jobs:
           Compress-Archive -Path zrenderer.exe,zrenderer-server.exe,libcrypto-1_1-x64.dll,libssl-1_1-x64.dll,resolver_data,RESOLVER.md,README.md,RESOURCES.md,zrenderer.example.conf,zrenderer.docker.conf,api-spec,api-doc -DestinationPath zrenderer-windows-x64-${{ steps.extract_version.outputs.VERSION }}.zip
 
       - name: Create Release
-        env:
-          VERSION: ${{ steps.extract_version.outputs.VERSION }}
         uses: ncipollo/release-action@v1.14.0
         with:
           artifactErrorsFailBuild: true
