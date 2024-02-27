@@ -9,7 +9,7 @@
         "libpng-apng": "~>1.0",
         "luad": {"path": "../LuaD/"},
         "zencoding:windows949": "~>1.0",
-        "vibe-d:http": "==0.9.3"
+        "vibe-d:http": "==0.9.6"
     },
     "versions": ["VibeDisableCommandLineParsing"],
     "sourcePaths": ["../source/", "./source/"],
