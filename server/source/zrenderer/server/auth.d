@@ -139,7 +139,9 @@ Nullable!AccessToken checkAuth(HTTPServerRequest req, AccessTokenDB tokens) @saf
 {
     import std.exception : ifThrown;
 
-    const tokenString = req.query["accesstoken"].ifThrown(string.init);
+    const tokenString = req.headers["x-accesstoken"]
+        .ifThrown(req.query["accesstoken"])
+        .ifThrown(string.init);
 
     if (tokenString == string.init)
     {
@@ -346,13 +348,16 @@ private void setPropertyOnAccessToken(const long lineNumber, const scope char[] 
     import std.array : array;
 
     alias setPropertyFunc = void delegate(const scope char[] value) @safe;
+    alias setCapabilityFunc = void delegate() @safe;
 
-    bool*[string] availableCapabilities;
+    setCapabilityFunc[string] availableCapabilities;
     setPropertyFunc[string] availableProperties;
 
     foreach (memberName; __traits(allMembers, Capabilities))
     {
-        availableCapabilities[memberName] = &(__traits(getMember, token.capabilities, memberName));
+        availableCapabilities[memberName] = () @safe {
+            __traits(getMember, token.capabilities, memberName) = true;
+        };
     }
 
     foreach (memberName; __traits(allMembers, Properties))
@@ -376,10 +381,10 @@ private void setPropertyOnAccessToken(const long lineNumber, const scope char[] 
         }
         else
         {
-            auto refValue = key in availableCapabilities;
-            if (refValue !is null)
+            auto setFunc = key in availableCapabilities;
+            if (setFunc !is null)
             {
-                **refValue = true;
+                (*setFunc)();
             }
             else
             {

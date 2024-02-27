@@ -551,7 +551,8 @@ components:
     accessToken:
       type: apiKey
       description: Access token required to make requests.
-      name: accesstoken
-      in: query
+      name: x-accesstoken
+      in: header
 security:
   - accessToken: []
+

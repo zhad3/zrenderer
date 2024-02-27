@@ -189,7 +189,7 @@ font-style: italic;
     <div class="license-url">http://apache.org/licenses/LICENSE-2.0.html</div>
   <h2>Access</h2>
     <ol>
-      <li>APIKey KeyParamName:accesstoken KeyInQuery:true KeyInHeader:false</li>
+      <li>APIKey KeyParamName:x-accesstoken KeyInQuery:false KeyInHeader:true</li>
     </ol>
 
   <h2><a name="__Methods">Methods</a></h2>
@@ -572,6 +572,12 @@ font-style: italic;
     <pre class="example"><code>{
   "output" : [ "output/1002/0-0.png", "output/1002/0-1.png", "output/1002/0-2.png", "output/1002/0-3.png", "output/1002/0.png" ]
 }</code></pre>
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: application/zip</div>
+    <pre class="example"><code>Custom MIME type example not yet supported: application/zip</code></pre>
+    <h3 class="field-label">Example data</h3>
+    <div class="example-data-content-type">Content-Type: image/png</div>
+    <pre class="example"><code>Custom MIME type example not yet supported: image/png</code></pre>
 
     <h3 class="field-label">Produces</h3>
     This API call produces the following media types according to the <span class="header">Accept</span> request header;
@@ -965,7 +971,6 @@ font-style: italic;
   <h3>Table of Contents</h3>
   <ol>
     <li><a href="#AccessToken"><code>AccessToken</code> - </a></li>
-    <li><a href="#AccessToken_allOf"><code>AccessToken_allOf</code> - </a></li>
     <li><a href="#BaseToken"><code>BaseToken</code> - </a></li>
     <li><a href="#GenericResponse"><code>GenericResponse</code> - </a></li>
     <li><a href="#HealthResponse"><code>HealthResponse</code> - </a></li>
@@ -986,15 +991,6 @@ font-style: italic;
 <div class="param">capabilities (optional)</div><div class="param-desc"><span class="param-type"><a href="#TokenCapabilities">TokenCapabilities</a></span>  </div>
 <div class="param">properties (optional)</div><div class="param-desc"><span class="param-type"><a href="#TokenProperties">TokenProperties</a></span>  </div>
 <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> The identifier of this access token. format: int32</div>
-<div class="param">token (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span> The actual token value that is used to make requests. </div>
-<div class="param">isAdmin (optional)</div><div class="param-desc"><span class="param-type"><a href="#boolean">Boolean</a></span> Whether this token has admin privileges. Will only be returned if requested with an admin token. </div>
-    </div>  <!-- field-items -->
-  </div>
-  <div class="model">
-    <h3><a name="AccessToken_allOf"><code>AccessToken_allOf</code> - </a> <a class="up" href="#__Models">Up</a></h3>
-    <div class='model-description'></div>
-    <div class="field-items">
-      <div class="param">id (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> The identifier of this access token. format: int32</div>
 <div class="param">token (optional)</div><div class="param-desc"><span class="param-type"><a href="#string">String</a></span> The actual token value that is used to make requests. </div>
 <div class="param">isAdmin (optional)</div><div class="param-desc"><span class="param-type"><a href="#boolean">Boolean</a></span> Whether this token has admin privileges. Will only be returned if requested with an admin token. </div>
     </div>  <!-- field-items -->
