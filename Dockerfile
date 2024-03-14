@@ -1,4 +1,4 @@
-FROM alpine:3.14 AS build
+FROM alpine:3.19 AS build
 
 RUN apk update && \
     apk add --no-cache build-base autoconf libtool zlib-dev openssl-dev ldc dub && \
@@ -9,7 +9,7 @@ COPY . .
 RUN dub clean && dub build --build=release --config=docker --force :server
 
 
-FROM alpine:3.14
+FROM alpine:3.19
 
 EXPOSE 11011
 
