@@ -383,6 +383,14 @@ components:
             - 2
             - 3
           example: 0
+        madogearType:
+          format: int32
+          description: >-
+            The alternative madogear sprite for player characters.
+            Only applicable to madogear jobs. Possible values are 'robot' (0) and 'suit' (2).
+          enum:
+            - 0
+            - 2
         enableShadow:
           description: Draw shadow underneath the sprite.
           type: boolean

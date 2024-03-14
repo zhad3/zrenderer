@@ -18,7 +18,7 @@ string createUid(uint jobid, immutable(Config) config, immutable(Canvas) canvas)
 private ubyte[] configToByteArray(uint jobid, immutable(Config) config, immutable(Canvas) canvas) pure nothrow @safe
 {
     immutable sz = int.sizeof;
-    auto buffer = new ubyte[sz * 23];
+    auto buffer = new ubyte[sz * 24];
 
     auto i = 0;
 
@@ -45,6 +45,7 @@ private ubyte[] configToByteArray(uint jobid, immutable(Config) config, immutabl
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.bodyPalette);
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.headPalette);
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.headdir.toInt());
+    buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.madogearType.toInt());
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.enableShadow ? 1 : 0);
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(config.outputFormat.toInt());
     buffer[(sz * i) .. (sz * (++i))] = nativeToLittleEndian(canvas.width);

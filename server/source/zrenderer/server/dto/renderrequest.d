@@ -2,7 +2,7 @@ module zrenderer.server.dto.renderrequest;
 
 import vibe.data.serialization : optional;
 import std.typecons : Nullable;
-import config : Gender, HeadDirection, OutputFormat;
+import config : Gender, HeadDirection, OutputFormat, MadogearType;
 
 struct RenderRequestData
 {
@@ -17,6 +17,7 @@ struct RenderRequestData
     @optional Nullable!int bodyPalette;
     @optional Nullable!int headPalette;
     @optional Nullable!HeadDirection headdir;
+    @optional Nullable!MadogearType madogearType;
     @optional Nullable!bool enableShadow;
     @optional Nullable!string canvas;
     @optional Nullable!OutputFormat outputFormat;
@@ -96,6 +97,7 @@ string toString(const scope RenderRequestData data) pure @safe
     if (!data.bodyPalette.isNull) putSingle(data.bodyPalette.get, "bodyPalette");
     if (!data.headPalette.isNull) putSingle(data.headPalette.get, "headPalette");
     if (!data.headdir.isNull) putSingle(data.headdir.get, "headdir");
+    if (!data.madogearType.isNull) putSingle(data.madogearType.get, "madogearType");
     if (!data.enableShadow.isNull) putSingle(data.enableShadow.get, "enableShadow");
     if (!data.canvas.isNull) putSingle(data.canvas.get, "canvas");
     if (!data.outputFormat.isNull) putSingle(data.outputFormat.get, "outputFormat");

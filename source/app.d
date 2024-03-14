@@ -1,6 +1,6 @@
 module app;
 
-import config : Config, Gender, HeadDirection, OutputFormat;
+import config : Config, Gender, HeadDirection, OutputFormat, MadogearType;
 import draw : Canvas, canvasFromString;
 import logging : LogLevel, LogDg;
 import luad.state : LuaState;
@@ -482,7 +482,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
 
     try
     {
-        bodysprite = loadBodySprite(jobid, config.outfit, config.gender, resolve, resManager, log, useOutfit);
+        bodysprite = loadBodySprite(jobid, config.outfit, config.gender, config.madogearType, resolve, resManager, log, useOutfit);
     }
     catch (ResourceException err)
     {
@@ -519,18 +519,28 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
         log(LogLevel.warning, err.msg);
     }
 
-    if (config.weapon > 0)
+    if (config.weapon > 0 || resolver.isMadogear(jobid))
     {
-        const weaponspritepath = resolve.weaponSprite(jobid, config.weapon, config.gender);
+        const weaponspritepath = resolve.weaponSprite(jobid, config.weapon, config.gender, config.madogearType);
         if (weaponspritepath.length > 0)
         {
+            if (!resolver.isMadogear(jobid)) // Madogear do not have a weapon, only weapon slash
+            {
+                try
+                {
+                    log(LogLevel.trace, "Loading Weapon " ~ weaponspritepath);
+                    auto weaponsprite = resManager.getSprite(weaponspritepath, SpriteType.weapon);
+                    weaponsprite.typeOrder = 0;
+                    sprites ~= weaponsprite;
+                }
+                catch (ResourceException err)
+                {
+                    log(LogLevel.warning, err.msg);
+                }
+            }
+
             try
             {
-                log(LogLevel.trace, "Loading Weapon " ~ weaponspritepath);
-                auto weaponsprite = resManager.getSprite(weaponspritepath, SpriteType.weapon);
-                weaponsprite.typeOrder = 0;
-                sprites ~= weaponsprite;
-
                 // Weapon Slash
                 log(LogLevel.trace, "Loading Weapon Slash " ~ weaponspritepath ~ "_검광");
                 auto weaponslashsprite = resManager.getSprite(weaponspritepath ~ "_검광", SpriteType.weapon);
@@ -663,11 +673,11 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
         string bodypalettepath;
         if (config.outfit > 0 && useOutfit)
         {
-            bodypalettepath = resolve.bodyAltPalette(jobid, config.bodyPalette, config.gender, config.outfit);
+            bodypalettepath = resolve.bodyAltPalette(jobid, config.bodyPalette, config.gender, config.outfit, config.madogearType);
         }
         else
         {
-            bodypalettepath = resolve.bodyPalette(jobid, config.bodyPalette, config.gender);
+            bodypalettepath = resolve.bodyPalette(jobid, config.bodyPalette, config.gender, config.madogearType);
         }
 
         if (bodypalettepath.length > 0)
@@ -790,7 +800,8 @@ bool shouldDrawShadow(bool enableShadow, uint jobid, uint action) pure nothrow @
 
 /// Throws ResourceException
 private Sprite loadBodySprite(uint jobid, uint outfitid, const scope Gender gender,
-        Resolver resolve, ResourceManager resManager, LogDg log, out bool useOutfit)
+        const scope MadogearType madogearType, Resolver resolve, ResourceManager resManager,
+        LogDg log, out bool useOutfit)
 {
     string bodyspritepath;
     Sprite bodysprite;
@@ -799,7 +810,7 @@ private Sprite loadBodySprite(uint jobid, uint outfitid, const scope Gender gend
 
     if (outfitid > 0)
     {
-        bodyspritepath = resolve.playerBodyAltSprite(jobid, gender, outfitid);
+        bodyspritepath = resolve.playerBodyAltSprite(jobid, gender, outfitid, madogearType);
         if (bodyspritepath.length > 0)
         {
             try
@@ -817,7 +828,7 @@ private Sprite loadBodySprite(uint jobid, uint outfitid, const scope Gender gend
 
     if (!useOutfit)
     {
-        bodyspritepath = resolve.playerBodySprite(jobid, gender);
+        bodyspritepath = resolve.playerBodySprite(jobid, gender, madogearType);
 
         import std.exception : enforce;
         import std.format : format;

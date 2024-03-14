@@ -29,7 +29,7 @@ A tool to render sprites from Ragnarok Online
 -o                --outdir Output directory where all rendered sprites will be saved to. Default: output
             --resourcepath Path to the resource directory. All resources are tried to be found within this directory. Default: 
 -j                   --job Job id(s) which should be rendered. Can contain multiple comma separated values. Default: 
--g                --gender Gender of the player character. Possible values are: male or female. Default: male
+-g                --gender Gender of the player character. Possible values are: 'male' (1) or 'female' (0). Default: male
                     --head Head id which should be used when drawing a player. Default: 1
                   --outfit The alternative outfit for player characters. Not all characters have alternative outfits. In these cases the default character will be rendered instead. Value of 0 means no outfit. Default: 0
                 --headgear Headgears which should be attached to the players head. Can contain up to 3 comma separated values. Default: 
@@ -41,12 +41,13 @@ A tool to render sprites from Ragnarok Online
              --bodyPalette Palette for the body sprite. Set to -1 to use the standard palette. Default: -1
              --headPalette Palette for the head sprite. Set to -1 to use the standard palette. Default: -1
                  --headdir Direction in which the head should turn. This is only applied to player sprites and only to the stand and sit action. Possible values are: straight, left, right or all. If 'all' is set then this direction system is ignored and all frames are interpreted like any other one. Default: all
+            --madogearType The alternative madogear sprite for player characters. Only applicable to madogear jobs. Possible values are 'robot' (0) and 'suit' (2). Default: robot
             --enableShadow Draw shadow underneath the sprite. Default: true
             --singleframes Generate single frames of an animation. Default: false
    --enableUniqueFilenames If enabled the output filenames will be the checksum of input parameters. This will ensure that each request creates a filename that is unique to the input parameters and no overlapping for the same job occurs. Default: false
      --returnExistingFiles Whether to return already existing sprites (true) or always re-render it (false). You should only use this option in conjuction with 'enableUniqueFilenames=true'. Default: false
                   --canvas Sets a canvas onto which the sprite should be rendered. The canvas requires two options: its size and an origin point inside the canvas where the sprite should be placed. The format is as following: <width>x<height>±<x>±<y>. An origin point of +0+0 is equal to the top left corner. Example: 200x250+100+125. This would create a canvas and place the sprite in the center. Default: 
-            --outputFormat Defines the output format. Possible values are 'png' or 'zip'. If zip is chosen the zip will contain png files. Default: png
+            --outputFormat Defines the output format. Possible values are 'png' (0) or 'zip' (1). If zip is chosen the zip will contain png files. Default: png
                 --loglevel Log level. Defines the minimum level at which logs will be shown. Possible values are: all, trace, info, warning, error, critical, fatal or off. Default: info
                    --hosts Hostnames of the server. Can contain multiple comma separated values. Default: localhost
                     --port Port of the server. Default: 11011

@@ -2,7 +2,7 @@ module resolver;
 
 import std.conv : to;
 import luad.state : LuaState;
-import config : Gender, toString;
+import config : Gender, toString, MadogearType;
 
 bool isNPC(uint jobid) pure nothrow @safe @nogc
 {
@@ -93,10 +93,15 @@ class Resolver
         this._shieldNames = readText("resolver_data/shield_names.txt").lineSplitter.map!(toLower).array;
     }
 
-    string jobSpriteName(uint jobid)
+    string jobSpriteName(uint jobid, MadogearType madogearType = MadogearType.robot)
     {
         if (isPlayer(jobid))
         {
+            if (isMadogear(jobid) && madogearType == MadogearType.suit)
+            {
+                return alternativeMadogearJobName(jobid, madogearType);
+            }
+
             if (jobid > 4000)
             {
                 jobid -= this.AdvancedJobIndex;
@@ -129,11 +134,16 @@ class Resolver
         return "";
     }
 
-    string imfName(uint jobid, Gender gender)
+    string imfName(uint jobid, Gender gender, MadogearType madogearType = MadogearType.robot)
     {
         if (!isPlayer(jobid))
         {
             return "";
+        }
+
+        if (isMadogear(jobid) && madogearType == MadogearType.suit)
+        {
+            return alternativeMadogearJobName(jobid, madogearType) ~ "_" ~ gender.toString;
         }
 
         if (jobid > 4000)
@@ -151,12 +161,12 @@ class Resolver
         return imfName ~ "_" ~ gender.toString;
     }
 
-    string playerBodySprite(uint jobid, Gender gender)
+    string playerBodySprite(uint jobid, Gender gender, MadogearType madogearType = MadogearType.robot)
     {
 
         if (isPlayer(jobid))
         {
-            auto jobname = this.jobSpriteName(jobid);
+            auto jobname = this.jobSpriteName(jobid, madogearType);
             if (isDoram(jobid))
             {
                 return buildPath("도람족", "몸통", gender.toString, jobname ~ "_" ~ gender
@@ -174,12 +184,12 @@ class Resolver
         }
     }
 
-    string playerBodyAltSprite(uint jobid, Gender gender, uint costumeid)
+    string playerBodyAltSprite(uint jobid, Gender gender, uint costumeid, MadogearType madogearType = MadogearType.robot)
     {
 
         if (isPlayer(jobid))
         {
-            auto jobname = this.jobSpriteName(jobid);
+            auto jobname = this.jobSpriteName(jobid, madogearType);
             auto costume = costumeid.to!string;
             if (isDoram(jobid))
             {
@@ -249,11 +259,18 @@ class Resolver
         return "";
     }
 
-    string bodyPalette(uint jobid, uint paletteid, Gender gender)
+    string bodyPalette(uint jobid, uint paletteid, Gender gender, MadogearType madogearType = MadogearType.robot)
     {
         if (!isPlayer(jobid))
         {
             return "";
+        }
+
+        if (isMadogear(jobid) && madogearType == MadogearType.suit)
+        {
+            return buildPath("몸",
+                    alternativeMadogearJobName(jobid, madogearType) ~ "_" ~ gender.toString ~ "_" ~ paletteid
+                    .to!string);
         }
 
         bool doram = isDoram(jobid);
@@ -282,11 +299,18 @@ class Resolver
         return "";
     }
 
-    string bodyAltPalette(uint jobid, uint paletteid, Gender gender, uint costumeid)
+    string bodyAltPalette(uint jobid, uint paletteid, Gender gender, uint costumeid, MadogearType madogearType = MadogearType.robot)
     {
         if (!isPlayer(jobid))
         {
             return "";
+        }
+
+        if (isMadogear(jobid) && madogearType == MadogearType.suit)
+        {
+            return buildPath("몸",
+                    "costume_" ~ costumeid.to!string,
+                    alternativeMadogearJobName(jobid, madogearType) ~ "_" ~ gender.toString ~ "_" ~ paletteid.to!string ~ "_" ~ costumeid.to!string);
         }
 
         bool doram = isDoram(jobid);
@@ -340,7 +364,7 @@ class Resolver
         }
     }
 
-    string weaponSprite(uint jobid, uint weaponid, Gender gender)
+    string weaponSprite(uint jobid, uint weaponid, Gender gender, MadogearType madogearType = MadogearType.robot)
     {
         const isPlayer = isPlayer(jobid);
         const isMercenary = isMercenary(jobid);
@@ -354,6 +378,10 @@ class Resolver
         {
             const doram = isDoram(jobid);
 
+            const isMadogear_ = isMadogear(jobid);
+            const isAlternativeMadogear = isMadogear(jobid) && madogearType == MadogearType.suit;
+            const madogearJobName = isAlternativeMadogear ? alternativeMadogearJobName(jobid, madogearType) : "";
+
             if (jobid > 4000)
             {
                 jobid -= AdvancedJobIndex;
@@ -366,14 +394,25 @@ class Resolver
             version (Windows)
             {
                 auto jobWeaponName = this._jobNamesWeapon[jobid];
+
+                if (isAlternativeMadogear)
+                {
+                    import std.string : indexOf;
+                    jobWeaponName = jobWeaponName[0 .. jobWeaponName.indexOf('\\') + 1] ~ madogearJobName;
+                }
             }
             else
             {
                 import std.path : dirSeparator;
                 import std.algorithm.iteration : substitute;
 
-                auto jobWeaponName = this._jobNamesWeapon[jobid].substitute("\\", dirSeparator)
-                    .to!string;
+                auto jobWeaponName = this._jobNamesWeapon[jobid].substitute("\\", dirSeparator).to!string;
+
+                if (isAlternativeMadogear)
+                {
+                    import std.string : indexOf;
+                    jobWeaponName = jobWeaponName[0 .. jobWeaponName.indexOf(dirSeparator) + 1] ~ madogearJobName;
+                }
             }
 
             string weaponName = "";
@@ -382,7 +421,7 @@ class Resolver
             auto reqWeaponName = this._lua.get!LuaFunction("ReqWeaponName");
             weaponName = fromWindows949(reqWeaponName.call!string(weaponid).representation).toUTF8.toLower;
 
-            if (weaponName.length == 0)
+            if (weaponName.length == 0 && !isMadogear_)
             {
                 auto getRealWeaponId = this._lua.get!LuaFunction("GetRealWeaponId");
                 weaponid = getRealWeaponId.call!uint(weaponid);
@@ -394,7 +433,7 @@ class Resolver
                 }
             }
 
-            if (weaponName.length == 0)
+            if (weaponName.length == 0 && !isMadogear_)
             {
                 return "";
             }
@@ -504,4 +543,20 @@ class Resolver
             return buildPath("로브", garmentName, gender.toString, jobname ~ "_" ~ gender.toString);
         }
     }
+
+    // Alternative Madogear sprite, unfortunately hardcoded values
+    string alternativeMadogearJobName(uint jobid, MadogearType type)
+    {
+        if (jobid == 4086 || jobid == 4087 || jobid == 4112)
+        {
+            // Mechanic
+            return "마도아머";
+        }
+        else /* if (jobid == 4279)*/
+        {
+            // Meister
+            return "meister_madogear2";
+        }
+    }
 }
+

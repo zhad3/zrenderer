@@ -56,6 +56,28 @@ int toInt(HeadDirection headdir) pure nothrow @safe @nogc
     }
 }
 
+enum MadogearType
+{
+    robot,
+    unused,
+    suit
+}
+
+int toInt(MadogearType type) pure nothrow @safe @nogc
+{
+    switch (type)
+    {
+        case MadogearType.robot:
+            return 0;
+        case MadogearType.unused:
+            return 1;
+        case MadogearType.suit:
+            return 2;
+        default:
+            return 0;
+    }
+}
+
 enum OutputFormat
 {
     png,
@@ -91,7 +113,7 @@ struct Config
             "separated values.")
     string[] job;
 
-    @Short("g") @Desc("Gender of the player character. Possible values are: male or female.")
+    @Short("g") @Desc("Gender of the player character. Possible values are: 'male' (1) or 'female' (0).")
     Gender gender = Gender.male;
 
     @Desc("Head id which should be used when drawing a player.")
@@ -131,6 +153,10 @@ struct Config
             "system is ignored and all frames are interpreted like any other one.")
     HeadDirection headdir = HeadDirection.all;
 
+    @Desc("The alternative madogear sprite for player characters. Only applicable to madogear jobs. Possible values " ~
+            "are 'robot' (0) and 'suit' (2).")
+    MadogearType madogearType = MadogearType.robot;
+
     @Desc("Draw shadow underneath the sprite.")
     bool enableShadow = true;
 
@@ -152,7 +178,7 @@ struct Config
             "Example: 200x250+100+125. This would create a canvas and place the sprite in the center.")
     string canvas = "";
 
-    @Desc("Defines the output format. Possible values are 'png' or 'zip'. If zip is chosen the zip will contain png " ~
+    @Desc("Defines the output format. Possible values are 'png' (0) or 'zip' (1). If zip is chosen the zip will contain png " ~
             "files.")
     OutputFormat outputFormat = OutputFormat.png;
 
