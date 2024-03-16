@@ -58,7 +58,7 @@ jobs:
       - name: Package
         shell: powershell
         run: |
-          Compress-Archive -Path zrenderer.exe,zrenderer-server.exe,libcrypto-1_1-x64.dll,libssl-1_1-x64.dll,resolver_data,RESOLVER.md,README.md,RESOURCES.md,zrenderer.example.conf,zrenderer.docker.conf,api-spec,api-doc -DestinationPath zrenderer-windows-x64-${{ steps.extract_version.outputs.VERSION }}.zip
+          Compress-Archive -Path zrenderer.exe,zrenderer-server.exe,libcrypto-1_1-x64.dll,libssl-1_1-x64.dll,resolver_data,RESOLVER.md,README.md,RESOURCES.md,zrenderer.example.conf,zrenderer.docker.conf,api-spec,api-doc -DestinationPath zrenderer-windows-x64-${{ env.VERSION }}.zip
 
       - name: Create Release
         uses: ncipollo/release-action@v1.14.0
