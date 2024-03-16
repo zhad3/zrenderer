@@ -1031,7 +1031,7 @@ font-style: italic;
     <h3><a name="RenderRequest"><code>RenderRequest</code> - </a> <a class="up" href="#__Models">Up</a></h3>
     <div class='model-description'></div>
     <div class="field-items">
-      <div class="param">job </div><div class="param-desc"><span class="param-type"><a href="#string">array[String]</a></span> Job id(s) which should be rendered. Can contain multiple comma separated values as well as ranges (e.g. &quot;1001-1999&quot;). </div>
+      <div class="param">job </div><div class="param-desc"><span class="param-type"><a href="#string">array[String]</a></span> Job id(s) which should be rendered. Can contain multiple comma separated values as well as ranges (e.g. &quot;1001-1999&quot;). Providing a single value of &quot;none&quot; will not render the body, only the head with headgers. </div>
 <div class="param">action (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> Action of the job which should be drawn. format: int32</div>
 <div class="param">frame (optional)</div><div class="param-desc"><span class="param-type"><a href="#integer">Integer</a></span> Frame of the action which should be drawn. Set to -1 to draw all frames. format: int32</div>
 <div class="param">gender (optional)</div><div class="param-desc"><span class="param-type"><a href="#number">BigDecimal</a></span> Gender of the player character. Possible values are: 1=male or 0=female. format: int32</div>

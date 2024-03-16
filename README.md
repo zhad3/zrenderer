@@ -89,6 +89,10 @@ Result:
 | --- |
 | ![Novice](examples/0_93.png) |
 
+**Render only the head of a player: Action 7 (Stand) with head 18, headgear 311 (Baby Chick), palette 3, gender female and look straight.**  
+`./zrenderer --job=none --action=7 --head=18 --headgear=311 --headPalette=3 --gender=female`  
+Result: ![Head](examples/none_7.png)
+
 
 If you're wondering how these IDs get mapped to the actual sprites take a look at [RESOLVER.md](RESOLVER.md).
 ## Server

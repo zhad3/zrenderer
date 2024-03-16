@@ -2,7 +2,7 @@ module resolver;
 
 import std.conv : to;
 import luad.state : LuaState;
-import config : Gender, toString, MadogearType;
+import config : Gender, toString, MadogearType, NoJobId;
 
 bool isNPC(uint jobid) pure nothrow @safe @nogc
 {
@@ -26,7 +26,7 @@ bool isMonster(uint jobid) pure nothrow @safe @nogc
 
 bool isPlayer(uint jobid) pure nothrow @safe @nogc
 {
-    return jobid < 45 || (jobid - 4001 < 316);
+    return jobid < 45 || (jobid - 4001 < 316) || jobid == NoJobId;
 }
 
 bool isDoram(uint jobid) pure nothrow @safe @nogc

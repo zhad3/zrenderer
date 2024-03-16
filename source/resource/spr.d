@@ -4,7 +4,7 @@ import resource.base;
 import resource.palette : Palette;
 import draw : Color, RawImage;
 
-private enum MinSprSize = 2 + 16 + 16 + 1024;
+private enum MinSprSize = 2 + 6 + 1024;
 
 class SprResource : BaseResource
 {
@@ -47,7 +47,14 @@ class SprResource : BaseResource
 
         this._buffer = fileHandle.rawRead(new ubyte[fileHandle.size()]);
 
-        this.readData();
+        this.readData(this._buffer);
+        this._usable = true;
+    }
+
+    override void load(const(ubyte)[] buffer)
+    {
+        this._buffer = buffer.dup;
+        this.readData(this._buffer);
         this._usable = true;
     }
 
@@ -147,32 +154,32 @@ class SprResource : BaseResource
        is thrown.
        Throws: ResourceException
      */
-    private void readData()
+    private void readData(const(ubyte)[] buffer)
     {
         import std.conv : to;
         import std.exception : enforce;
 
-        enforce!ResourceException(this._buffer.length >= MinSprSize,
+        enforce!ResourceException(buffer.length >= MinSprSize,
                 "Spr file: '" ~ this.filename ~ "' does not have enough bytes to be " ~
-                "valid. Has: " ~ this._buffer.length.to!string ~ " bytes. " ~
+                "valid. Has: " ~ buffer.length.to!string ~ " bytes. " ~
                 "Should have: " ~ MinSprSize.to!string ~ " bytes.");
 
-        enforce!ResourceException(this._buffer[0 .. 2] == ['S', 'P'],
+        enforce!ResourceException(buffer[0 .. 2] == ['S', 'P'],
                 "Spr file: '" ~ this.filename ~ "' does not have a valid signature.");
 
         import std.bitmanip : littleEndianToNative, peek;
         import std.system : Endian;
 
-        this._palette = cast(Color[]) this._buffer[$ - 1024 .. $];
+        this._palette = cast(Color[]) buffer[$ - 1024 .. $];
 
         ulong offset = 2;
 
-        this._ver = this._buffer.peekLE!ushort(&offset);
-        const palImages = this._buffer.peekLE!ushort(&offset);
+        this._ver = buffer.peekLE!ushort(&offset);
+        const palImages = buffer.peekLE!ushort(&offset);
         auto rgbaImages = 0;
         if (this._ver >= 0x200)
         {
-            rgbaImages = this._buffer.peekLE!ushort(&offset);
+            rgbaImages = buffer.peekLE!ushort(&offset);
         }
 
         this._images[0] = new RawImage[palImages];
@@ -183,8 +190,8 @@ class SprResource : BaseResource
         for (auto i = 0; i < palImages; ++i)
         {
             RawImage img;
-            img.width = this._buffer.peekLE!ushort(&offset);
-            img.height = this._buffer.peekLE!ushort(&offset);
+            img.width = buffer.peekLE!ushort(&offset);
+            img.height = buffer.peekLE!ushort(&offset);
 
             ulong size = img.width * img.height;
 
@@ -192,7 +199,7 @@ class SprResource : BaseResource
 
             if (this._ver >= 0x201)
             {
-                size = this._buffer.peekLE!ushort(&offset);
+                size = buffer.peekLE!ushort(&offset);
             }
 
             this._images[0][i] = img;
@@ -205,8 +212,8 @@ class SprResource : BaseResource
             for (auto i = 0; i < rgbaImages; ++i)
             {
                 RawImage img;
-                img.width = this._buffer.peekLE!ushort(&offset);
-                img.height = this._buffer.peekLE!ushort(&offset);
+                img.width = buffer.peekLE!ushort(&offset);
+                img.height = buffer.peekLE!ushort(&offset);
 
                 ulong size = img.width * img.height;
 

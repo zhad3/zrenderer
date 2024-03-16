@@ -86,7 +86,13 @@ class ImfResource : BaseResource
 
         this._buffer = fileHandle.rawRead(new ubyte[fileHandle.size()]);
 
-        this.readData();
+        this.readData(this._buffer);
+        this._usable = true;
+    }
+
+    override void load(const(ubyte)[] buffer)
+    {
+        this.readData(buffer);
         this._usable = true;
     }
 
@@ -95,36 +101,36 @@ class ImfResource : BaseResource
         return this._ver;
     }
 
-    private void readData()
+    private void readData(const(ubyte)[] buffer)
     {
         ulong offset = 0;
-        this._ver = this._buffer.peekLE!float(&offset);
+        this._ver = buffer.peekLE!float(&offset);
 
         // skip checksum (int) because it is unused
         offset += 4;
 
-        uint maxLayer = this._buffer.peekLE!uint(&offset);
+        uint maxLayer = buffer.peekLE!uint(&offset);
 
         this._data = new ImfFrame[][][maxLayer + 1];
 
         for (auto layer = 0; layer <= maxLayer; ++layer)
         {
-            uint numActions = this._buffer.peekLE!uint(&offset);
+            uint numActions = buffer.peekLE!uint(&offset);
             this._data[layer] = new ImfFrame[][numActions];
 
             for (auto action = 0; action < numActions; ++action)
             {
-                uint numFrames = this._buffer.peekLE!uint(&offset);
+                uint numFrames = buffer.peekLE!uint(&offset);
                 this._data[layer][action] = new ImfFrame[numFrames];
 
                 for (auto frame = 0; frame < numFrames; ++frame)
                 {
                     auto frameData = &this._data[layer][action][frame];
-                    frameData.priority = this._buffer.peekLE!int(&offset);
+                    frameData.priority = buffer.peekLE!int(&offset);
 
                     // We skip cx and cy because we have no use for it
-                    //frameData.cx = this._buffer.peekLE!int(&offset);
-                    //frameData.cy = this._buffer.peekLE!int(&offset);
+                    //frameData.cx = buffer.peekLE!int(&offset);
+                    //frameData.cy = buffer.peekLE!int(&offset);
                     offset += 8;
                 }
             }

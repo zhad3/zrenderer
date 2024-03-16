@@ -80,7 +80,13 @@ class ActResource : BaseResource
 
         this._buffer = fileHandle.rawRead(new ubyte[fileHandle.size()]);
 
-        this.readData();
+        this.readData(this._buffer);
+        this._usable = true;
+    }
+
+    override void load(const(ubyte)[] buffer)
+    {
+        this.readData(buffer);
         this._usable = true;
     }
 
@@ -252,43 +258,43 @@ class ActResource : BaseResource
       is thrown.
       Throws: ResourceException
      */
-    private void readData()
+    private void readData(const(ubyte)[] buffer)
     {
         import std.conv : to;
         import std.exception : enforce;
 
-        enforce!ResourceException(this._buffer.length >= MinActSize,
+        enforce!ResourceException(buffer.length >= MinActSize,
                 "Act file: '" ~ this.filename ~ "' does not have enough bytes to be " ~
-                "valid. Has: " ~ this._buffer.length.to!string ~ " bytes. " ~
+                "valid. Has: " ~ buffer.length.to!string ~ " bytes. " ~
                 "Should have: " ~ MinActSize.to!string ~ " bytes.");
 
-        enforce!ResourceException(this._buffer[0 .. 2] == ['A', 'C'],
+        enforce!ResourceException(buffer[0 .. 2] == ['A', 'C'],
                 "Act file: '" ~ this.filename ~ "' does not have a valid signature.");
 
         ulong offset = 2;
-        this._ver = this._buffer.peekLE!ushort(&offset);
-        const numberOfActions = this._buffer.peekLE!ushort(&offset);
+        this._ver = buffer.peekLE!ushort(&offset);
+        const numberOfActions = buffer.peekLE!ushort(&offset);
         offset += 10; // skip reserved bytes
 
         this._actions = new ActAction[numberOfActions];
 
         foreach (ref action; this._actions)
         {
-            const numberOfFrames = this._buffer.peekLE!uint(&offset);
+            const numberOfFrames = buffer.peekLE!uint(&offset);
             if (numberOfFrames > 0)
             {
                 action.frames = new ActFrame[numberOfFrames];
 
                 foreach (ref frame; action.frames)
                 {
-                    this.readFrame(frame, offset);
+                    this.readFrame(buffer, frame, offset);
                 }
             }
         }
 
         if (this._ver >= 0x201)
         {
-            const numberOfEvents = this._buffer.peekLE!uint(&offset);
+            const numberOfEvents = buffer.peekLE!uint(&offset);
             if (numberOfEvents > 0)
             {
                 this._events = new string[numberOfEvents];
@@ -297,7 +303,7 @@ class ActResource : BaseResource
                 {
                     import std.string : fromStringz;
 
-                    event = fromStringz(cast(char*)&this._buffer[offset]).dup;
+                    event = fromStringz(cast(char*)&buffer[offset]).dup;
                     offset += 40;
                 }
             }
@@ -306,79 +312,79 @@ class ActResource : BaseResource
             {
                 foreach (ref action; this._actions)
                 {
-                    action.interval = this._buffer.peekLE!float(&offset);
+                    action.interval = buffer.peekLE!float(&offset);
                 }
             }
         }
 
-        assert(offset == this._buffer.length, "Offset of act file is not EOF");
+        assert(offset == buffer.length, "Offset of act file is not EOF");
     }
 
-    private void readFrame(ref ActFrame frame, ref ulong offset) pure nothrow
+    private void readFrame(const(ubyte)[] buffer, ref ActFrame frame, ref ulong offset) pure nothrow
     {
         // Skip attackRange and fitRange
         offset += uint.sizeof * 8;
-        const numberOfSprites = this._buffer.peekLE!uint(&offset);
+        const numberOfSprites = buffer.peekLE!uint(&offset);
         if (numberOfSprites > 0)
         {
             frame.sprites = new ActSprite[numberOfSprites];
 
             foreach (ref sprite; frame.sprites)
             {
-                this.readSprite(sprite, offset);
+                this.readSprite(buffer, sprite, offset);
             }
         }
 
         if (this._ver >= 0x200)
         {
-            frame.eventId = this._buffer.peekLE!int(&offset);
+            frame.eventId = buffer.peekLE!int(&offset);
 
             if (this._ver >= 0x203)
             {
-                const numberOfAttachPoints = this._buffer.peekLE!uint(&offset);
+                const numberOfAttachPoints = buffer.peekLE!uint(&offset);
                 if (numberOfAttachPoints > 0)
                 {
                     frame.attachPoints = new ActAttachPoint[numberOfAttachPoints];
 
                     foreach (ref attachpoint; frame.attachPoints)
                     {
-                        this.readAttachPoint(attachpoint, offset);
+                        this.readAttachPoint(buffer, attachpoint, offset);
                     }
                 }
             }
         }
     }
 
-    private void readSprite(ref ActSprite sprite, ref ulong offset) pure nothrow @nogc
+    private void readSprite(const(ubyte)[] buffer, ref ActSprite sprite, ref ulong offset) pure nothrow @nogc
     {
-        sprite.x = this._buffer.peekLE!int(&offset);
-        sprite.y = this._buffer.peekLE!int(&offset);
-        sprite.sprId = this._buffer.peekLE!int(&offset);
-        sprite.flags = this._buffer.peekLE!uint(&offset);
-        sprite.tint = this._buffer.peekLE!uint(&offset);
-        sprite.xScale = this._buffer.peekLE!float(&offset);
+        sprite.x = buffer.peekLE!int(&offset);
+        sprite.y = buffer.peekLE!int(&offset);
+        sprite.sprId = buffer.peekLE!int(&offset);
+        sprite.flags = buffer.peekLE!uint(&offset);
+        sprite.tint = buffer.peekLE!uint(&offset);
+        sprite.xScale = buffer.peekLE!float(&offset);
         if (this._ver >= 0x204)
         {
-            sprite.yScale = this._buffer.peekLE!float(&offset);
+            sprite.yScale = buffer.peekLE!float(&offset);
         }
         else
         {
             sprite.yScale = sprite.xScale;
         }
-        sprite.rotation = this._buffer.peekLE!int(&offset);
-        sprite.sprType = this._buffer.peekLE!int(&offset);
+        sprite.rotation = buffer.peekLE!int(&offset);
+        sprite.sprType = buffer.peekLE!int(&offset);
         if (this._ver >= 0x205)
         {
-            sprite.width = this._buffer.peekLE!int(&offset);
-            sprite.height = this._buffer.peekLE!int(&offset);
+            sprite.width = buffer.peekLE!int(&offset);
+            sprite.height = buffer.peekLE!int(&offset);
         }
     }
 
-    private void readAttachPoint(ref ActAttachPoint attachpoint, ref ulong offset) pure nothrow @nogc
+    private void readAttachPoint(const(ubyte)[] buffer, ref ActAttachPoint attachpoint, ref ulong offset) pure nothrow @nogc
     {
         offset += ubyte.sizeof * 4;
-        attachpoint.x = this._buffer.peekLE!int(&offset);
-        attachpoint.y = this._buffer.peekLE!int(&offset);
-        attachpoint.attr = this._buffer.peekLE!int(&offset);
+        attachpoint.x = buffer.peekLE!int(&offset);
+        attachpoint.y = buffer.peekLE!int(&offset);
+        attachpoint.attr = buffer.peekLE!int(&offset);
     }
 }

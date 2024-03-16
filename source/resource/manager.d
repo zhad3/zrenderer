@@ -47,6 +47,15 @@ class ResourceManager
         return sprite;
     }
 
+    Sprite getSprite(ActResource act, SprResource spr, SpriteType type = SpriteType.standard)
+    {
+        auto sprite = new Sprite(act, spr);
+        sprite.filename = act.filename();
+        sprite.type = type;
+
+        return sprite;
+    }
+
     bool exists(ResourceType)(string filename)
         if (is(ResourceType : BaseResource))
     {

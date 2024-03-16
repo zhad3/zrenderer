@@ -288,7 +288,9 @@ components:
         job:
           description: >-
             Job id(s) which should be rendered. Can contain multiple comma
-            separated values as well as ranges (e.g. "1001-1999").
+            separated values as well as ranges (e.g. "1001-1999"). Providing
+            a single value of "none" will not render the body, only the head
+            with headgers.
           type: array
           items:
             type: string

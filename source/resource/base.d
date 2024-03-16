@@ -54,6 +54,7 @@ public:
     }
 
     abstract void load();
+    abstract void load(const(ubyte)[] buffer);
 
     bool usable() const pure nothrow @safe @nogc
     {

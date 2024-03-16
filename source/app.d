@@ -1,6 +1,6 @@
 module app;
 
-import config : Config, Gender, HeadDirection, OutputFormat, MadogearType;
+import config : Config, Gender, HeadDirection, OutputFormat, MadogearType, NoJobId;
 import draw : Canvas, canvasFromString;
 import logging : LogLevel, LogDg;
 import luad.state : LuaState;
@@ -137,7 +137,7 @@ string[] process(immutable Config config, LogDg log, LuaState L,
         // We don't catch exceptions here because isJobArgValid should have taken care of errors
         if (rangeIndex < 0)
         {
-            startJob = jobidstr.to!uint;
+            startJob = jobidstr == "none" ? NoJobId : jobidstr.to!uint;
             endJob = startJob;
         }
         else
@@ -158,7 +158,7 @@ string[] process(immutable Config config, LogDg log, LuaState L,
             }
             else
             {
-                outputFilename = jobid.to!string;
+                outputFilename = jobid == NoJobId ? "none" : jobid.to!string;
             }
 
             if (config.returnExistingFiles && config.outputFormat != OutputFormat.zip)
@@ -519,7 +519,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
         log(LogLevel.warning, err.msg);
     }
 
-    if (config.weapon > 0 || resolver.isMadogear(jobid))
+    if ((config.weapon > 0 || resolver.isMadogear(jobid)) && jobid != NoJobId)
     {
         const weaponspritepath = resolve.weaponSprite(jobid, config.weapon, config.gender, config.madogearType);
         if (weaponspritepath.length > 0)
@@ -554,7 +554,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
         }
     }
 
-    if (config.shield > 0)
+    if (config.shield > 0 && jobid != NoJobId)
     {
         const shieldspritepath = resolve.shieldSprite(jobid, config.shield, config.gender);
         if (shieldspritepath.length > 0)
@@ -618,7 +618,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
         }
     }
 
-    if (config.garment > 0 && !isMadogear(jobid))
+    if (config.garment > 0 && jobid != NoJobId && !isMadogear(jobid))
     {
         auto garmentspritepath = resolve.garmentSprite(jobid, config.garment, config.gender);
         if (garmentspritepath.length > 0)
@@ -668,7 +668,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
     PaletteResource bodypalette;
     PaletteResource headpalette;
 
-    if (config.bodyPalette > -1)
+    if (config.bodyPalette > -1 && jobid != NoJobId)
     {
         string bodypalettepath;
         if (config.outfit > 0 && useOutfit)
@@ -771,7 +771,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
 
 bool shouldDrawShadow(bool enableShadow, uint jobid, uint action) pure nothrow @safe @nogc
 {
-    if (!enableShadow)
+    if (!enableShadow || jobid == NoJobId)
     {
         return false;
     }
@@ -803,10 +803,22 @@ private Sprite loadBodySprite(uint jobid, uint outfitid, const scope Gender gend
         const scope MadogearType madogearType, Resolver resolve, ResourceManager resManager,
         LogDg log, out bool useOutfit)
 {
+    useOutfit = false;
+
+    if (jobid == NoJobId)
+    {
+        import resource.act : ActResource;
+        import resource.spr : SprResource;
+        import resource.empty_body_sprite : emptyBodyAct, emptyBodySpr;
+        auto emptyAct = resManager.get!ActResource("emptyBody");
+        auto emptySpr = resManager.get!SprResource("emptyBody");
+        emptyAct.load(emptyBodyAct);
+        emptySpr.load(emptyBodySpr);
+        return resManager.getSprite(emptyAct, emptySpr, SpriteType.playerbody);
+    }
+
     string bodyspritepath;
     Sprite bodysprite;
-
-    useOutfit = false;
 
     if (outfitid > 0)
     {
@@ -887,6 +899,11 @@ private string[] existingFilenames(const scope string filename, const scope stri
 private ImfResource imfForJob(uint jobid, const scope Gender gender,
         Resolver resolve, ResourceManager resManager)
 {
+    if (jobid == NoJobId)
+    {
+        return null;
+    }
+
     const imfName = resolve.imfName(jobid, gender);
 
     if (imfName.length > 0)

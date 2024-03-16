@@ -58,6 +58,12 @@ class LuaResource : BaseResource
         this._usable = true;
     }
 
+    override void load(const(ubyte)[] buffer)
+    {
+        this._buffer = buffer.dup;
+        this._usable = true;
+    }
+
     import luad.state : LuaState;
 
     void loadIntoLuaState(ref LuaState L)

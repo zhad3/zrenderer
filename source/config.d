@@ -3,6 +3,8 @@ module config;
 import logging : LogLevel;
 import zconfig : Section, Desc, Short, ConfigFile, Required;
 
+enum NoJobId = uint.max - 1;
+
 enum Gender
 {
     female,
@@ -110,7 +112,8 @@ struct Config
     string resourcepath = "";
 
     @Short("j") @Desc("Job id(s) which should be rendered. Can contain multiple comma " ~
-            "separated values.")
+            "separated values as well as ranges (e.g. '1001-1999'). Providing a single value " ~
+            "of 'none' will not render the body, only the head with headgers.")
     string[] job;
 
     @Short("g") @Desc("Gender of the player character. Possible values are: 'male' (1) or 'female' (0).")

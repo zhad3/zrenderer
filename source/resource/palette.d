@@ -39,6 +39,17 @@ class PaletteResource : BaseResource
         this._usable = true;
     }
 
+    override void load(const(ubyte)[] buffer)
+    {
+        if (buffer.length < 256)
+        {
+            return;
+        }
+
+        this._palette = cast(Color[]) buffer[0 .. 256].dup;
+        this._usable = true;
+    }
+
     const(Palette) palette() const pure nothrow @safe @nogc
     {
         return this._palette;

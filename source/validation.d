@@ -2,6 +2,12 @@ module validation;
 
 bool isJobArgValid(const(string)[] jobids, int maxAmount = -1) pure @safe
 {
+    // Do not render body
+    if (jobids.length == 1 && jobids[0] == "none")
+    {
+        return true;
+    }
+
     bool isValid = true;
 
     size_t jobcount = 0;
@@ -24,7 +30,12 @@ bool isJobArgValid(const(string)[] jobids, int maxAmount = -1) pure @safe
         {
             try
             {
-                jobidstr.to!uint;
+                auto id = jobidstr.to!uint;
+                if (id == uint.max)
+                {
+                    isValid = false;
+                    break;
+                }
                 jobcount++;
             }
             catch (ConvException err)
