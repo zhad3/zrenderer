@@ -32,7 +32,7 @@ jobs:
           echo GIT_REF_TAG=$GIT_REF_TAG
           echo INPUT_TAG=$INPUT_TAG
           echo VERSION=$VERSION
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
           echo "Checking if the provided VERSION is valid: git rev-parse --verify $VERSION"
           git rev-parse --verify "$VERSION"
 
