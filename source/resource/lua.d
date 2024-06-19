@@ -23,25 +23,40 @@ class LuaResource : BaseResource
 
         bool fileFound = false;
 
+        import std.exception : ErrnoException;
+        import std.file : FileException;
+
         foreach (extension; this.fileExtensions)
         {
             import std.path : setExtension;
 
-            this._filename = setExtension(this._filename, extension);
+            string filename = setExtension(this._filename, extension);
 
-            import std.file : exists;
+            import std.file : getSize;
 
-            fileFound = this.filename.exists;
-            if (fileFound)
+            try
             {
-                break;
+                if (filename.getSize() == 0)
+                {
+                    continue;
+                }
+                fileFound = true;
+                this._filename = filename;
+            }
+            catch (ErrnoException err)
+            {
+                // Skip
+            }
+            catch (FileException err)
+            {
+                // Skip
             }
         }
 
         import std.exception : enforce;
         import std.format : format;
 
-        enforce!ResourceException(fileFound, format("LuaResource (%s) does not exist.", this.name));
+        enforce!ResourceException(fileFound, format("LuaResource (%s) does not exist or is empty", this.name));
 
         import std.stdio : File;
         import std.exception : collectException, ErrnoException;

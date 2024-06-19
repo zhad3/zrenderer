@@ -54,7 +54,7 @@ string[] run(immutable Config config, LogDg log, LuaState L = null,
 
         try
         {
-            loadRequiredLuaFiles(L, resManager);
+            loadRequiredLuaFiles(L, resManager, log);
         }
         catch (ResourceException err)
         {
@@ -199,6 +199,11 @@ string[] process(immutable Config config, LogDg log, LuaState L,
 
                 float scale = shadowfactor(jobid, L);
                 if (scale >= -float.epsilon && scale <= float.epsilon)
+                {
+                    shadowsprite.modifyActSprite!"xScale"(0, 0, 0, 0);
+                    shadowsprite.modifyActSprite!"yScale"(0, 0, 0, 0);
+                }
+                else if (scale > 0)
                 {
                     shadowsprite.modifyActSprite!"xScale"(0, 0, 0, scale);
                     shadowsprite.modifyActSprite!"yScale"(0, 0, 0, scale);

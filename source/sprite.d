@@ -3,6 +3,7 @@ module sprite;
 import resource : ResourceManager, ActResource, SprResource, ImfResource, ActSprite, Palette;
 import linearalgebra : Vector2, Vector3;
 import luad.state : LuaState;
+import luamanager : executeLuaFunctionOrElse;
 import config : Gender, toInt;
 
 
@@ -145,19 +146,13 @@ int zIndexForSprite(const scope Sprite sprite, int direction, uint action = uint
 int zIndexForGarmentSprite(uint jobid, uint garmentid, uint action, uint frame,
         Gender gender, int direction, ref LuaState L)
 {
-    import luad.lfunction : LuaFunction;
-
-
-    auto drawOnTopFunc = L.get!LuaFunction("_New_DrawOnTop");
-
-    bool onTop = drawOnTopFunc.call!bool(garmentid, gender.toInt(), jobid, action, frame);
+    bool onTop = executeLuaFunctionOrElse(L, "_New_DrawOnTop", false, garmentid, gender.toInt(), jobid, action, frame);
 
     bool topLeft = direction >= 2 && direction <= 5;
 
     if (onTop)
     {
-        auto isTopLayerFunc = L.get!LuaFunction("IsTopLayer");
-        bool isTopLayer = isTopLayerFunc.call!bool(garmentid);
+        bool isTopLayer = executeLuaFunctionOrElse(L, "IsTopLayer", false, garmentid);
         if (isTopLayer)
         {
             return 25;

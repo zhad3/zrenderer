@@ -10,19 +10,48 @@ import resource : ResourceManager, ResourceException;
 import resolver : Resolver;
 import luamanager : loadRequiredLuaFiles;
 import luad.state : LuaState;
+import logging : LogDg;
 
 /// Throws ResourceException
-static ResourceManager createAndInitResourceManager(LuaState L, string resourcePath)
+static ResourceManager createAndInitResourceManager(LuaState L, string resourcePath, LogDg log)
 {
     auto resManager = new ResourceManager(resourcePath);
 
-    loadRequiredLuaFiles(L, resManager);
+    loadRequiredLuaFiles(L, resManager, log);
 
     return resManager;
 }
 
 static void renderWorker(Task caller) nothrow
 {
+    import logging : LogLevel;
+
+    void logger (LogLevel logLevel, string msg)
+    {
+        switch (logLevel)
+        {
+            case LogLevel.trace:
+                logTrace(msg);
+                break;
+            default:
+            case LogLevel.info:
+                logInfo(msg);
+                break;
+            case LogLevel.warning:
+                logWarn(msg);
+                break;
+            case LogLevel.error:
+                logError(msg);
+                break;
+            case LogLevel.critical:
+                logCritical(msg);
+                break;
+            case LogLevel.fatal:
+                logFatal(msg);
+                break;
+        }
+    }
+
     try
     {
         static isInitialized = false;
@@ -38,40 +67,12 @@ static void renderWorker(Task caller) nothrow
         {
             L = new LuaState;
             L.openLibs();
-            resManager = createAndInitResourceManager(L, config.resourcepath);
+            resManager = createAndInitResourceManager(L, config.resourcepath, &logger);
             resolver = new Resolver(L);
             isInitialized = true;
         }
 
         import app : run;
-        import logging : LogLevel;
-
-        void logger (LogLevel logLevel, string msg)
-        {
-            switch (logLevel)
-            {
-                case LogLevel.trace:
-                    logTrace(msg);
-                    break;
-                default:
-                case LogLevel.info:
-                    logInfo(msg);
-                    break;
-                case LogLevel.warning:
-                    logWarn(msg);
-                    break;
-                case LogLevel.error:
-                    logError(msg);
-                    break;
-                case LogLevel.critical:
-                    logCritical(msg);
-                    break;
-                case LogLevel.fatal:
-                    logFatal(msg);
-                    break;
-            }
-        }
-
         immutable(string)[] filenames = cast(immutable(string)[]) run(config, &logger, L, resManager, resolver);
 
         send(caller, filenames);

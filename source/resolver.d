@@ -2,6 +2,7 @@ module resolver;
 
 import std.conv : to;
 import luad.state : LuaState;
+import luamanager : executeLuaFunctionOrElse;
 import config : Gender, toString, MadogearType, NoJobId;
 
 bool isNPC(uint jobid) pure nothrow @safe @nogc
@@ -113,10 +114,7 @@ class Resolver
         }
         else
         {
-            import luad.lfunction : LuaFunction;
-
-            auto reqJobName = this._lua.get!LuaFunction("ReqJobName");
-            string jobname = reqJobName.call!string(jobid);
+            string jobname = executeLuaFunctionOrElse!string(this._lua, "ReqJobName", "", jobid);
 
             version (Windows)
             {
@@ -415,17 +413,12 @@ class Resolver
                 }
             }
 
-            string weaponName = "";
-            import luad.lfunction : LuaFunction;
-
-            auto reqWeaponName = this._lua.get!LuaFunction("ReqWeaponName");
-            weaponName = fromWindows949(reqWeaponName.call!string(weaponid).representation).toUTF8.toLower;
+            string weaponName = fromWindows949(executeLuaFunctionOrElse!string(this._lua, "ReqWeaponName", "", weaponid).representation).toUTF8.toLower;
 
             if (weaponName.length == 0 && !isMadogear_)
             {
-                auto getRealWeaponId = this._lua.get!LuaFunction("GetRealWeaponId");
-                weaponid = getRealWeaponId.call!uint(weaponid);
-                weaponName = fromWindows949(reqWeaponName.call!string(weaponid).representation).toUTF8.toLower;
+                weaponid = executeLuaFunctionOrElse!uint(this._lua, "GetRealWeaponId", 0, weaponid);
+                weaponName = fromWindows949(executeLuaFunctionOrElse!string(this._lua, "ReqWeaponName", "", weaponid).representation).toUTF8.toLower;
 
                 if (weaponName.length == 0)
                 {
@@ -496,12 +489,9 @@ class Resolver
 
     string headgearSprite(uint headgearid, Gender gender)
     {
-        import luad.lfunction : LuaFunction;
+        string accName = executeLuaFunctionOrElse!string(this._lua, "ReqAccName", "", headgearid);
 
-        auto reqAccName = this._lua.get!LuaFunction("ReqAccName");
-
-        string headgearName = fromWindows949(reqAccName.call!string(headgearid)
-                .representation).toUTF8.toLower;
+        string headgearName = fromWindows949(accName.representation).toUTF8.toLower;
 
         if (headgearName.length == 0)
         {
@@ -521,13 +511,9 @@ class Resolver
 
         auto jobname = this.jobSpriteName(jobid);
 
-        import luad.lfunction : LuaFunction;
+        string robSprName_v2 = executeLuaFunctionOrElse!string(this._lua, "ReqRobSprName_V2", "", garmentid, checkEnglish);
 
-        auto reqRobSprName_v2 = this._lua.get!LuaFunction("ReqRobSprName_V2");
-
-        string garmentName = fromWindows949(
-                reqRobSprName_v2.call!string(garmentid, checkEnglish).representation)
-            .toUTF8.toLower;
+        string garmentName = fromWindows949(robSprName_v2.representation).toUTF8.toLower;
 
         if (garmentName.length == 0)
         {
