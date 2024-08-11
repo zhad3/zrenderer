@@ -264,7 +264,9 @@ class SprResource : BaseResource
                 if (palid == 0 && this._ver >= 0x201)
                 {
                     const len = this._buffer[offset + j + 1];
-                    img.pixels[p .. p + len] = pal[palid];
+                    Color color = pal[palid];
+                    color.a(0x00);
+                    img.pixels[p .. p + len] = color;
                     j++;
                     p += len - 1;
                 }
