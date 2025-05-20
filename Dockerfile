@@ -16,7 +16,8 @@ EXPOSE 11011
 RUN apk update && \
     apk add --no-cache zlib openssl llvm-libunwind && \
     mkdir /zren && \
-    adduser --disabled-password -h /zren -s /bin/sh zren zren
+    addgroup --gid 5000 zren && \
+    adduser -D -h /zren -s /bin/sh -u 5000 -G zren zren
 
 WORKDIR /zren
 COPY --from=build --chown=zren:zren /zrenderer/bin/zrenderer-server .
@@ -25,3 +26,4 @@ COPY --from=build --chown=zren:zren /zrenderer/resolver_data ./resolver_data
 USER zren
 
 CMD ["./zrenderer-server"]
+

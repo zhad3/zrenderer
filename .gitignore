@@ -18,3 +18,5 @@ bin/
 zrenderer.conf
 output/
 accesstokens.conf
+secrets/
+

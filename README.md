@@ -8,7 +8,7 @@ Tool to render sprites from the game Ragnarok Online. This tool is available as 
   * [CLI](#cli)
     * [Example](#example)
   * [Server](#server)
-* [Docker](#docker)
+* [Docker/Podman](#docker-podman)
 * [Dependencies when building](#dependencies-when-building)
   * [Linux](#linux)
   * [Windows](#windows)
@@ -110,19 +110,43 @@ You can find the openApi specifications here: [OpenAPI specifications](https://g
 And documentation here: https://github.com/zhad3/zrenderer/tree/main/server/api-doc.  
 The html can be viewed directly here: https://z0q.neocities.org/ragnarok-online-tools/zrenderer/api/
 
-## Docker
+## Docker/Podman
 You can use the pre-built and published images to run the server.
 
 In a terminal run the following command to get up and running:
 
+<details>
+<summary>Docker (click to view)</summary>
+
 ```
+mkdir secrets # The auto-generated accesstokens will be stored here
+
 docker run -d --name zrenderer \
   -v ./zrenderer.docker.conf:/zren/zrenderer.conf \
   -v ./output:/zren/output \
   -v ./my-resources:/zren/resources \
+  -v ./secrets:/zren/secrets \
   -p 11011:11011 \
+  --user root \
   zhade/zrenderer:latest
 ```
+</details>
+<details>
+<summary>Podman (click to view)</summary>
+
+```
+mkdir secrets # The auto-generated accesstokens will be stored here
+
+podman run -d --name zrenderer \
+  -v ./zrenderer.docker.conf:/zren/zrenderer.conf:z \
+  -v ./output:/zren/output:z \
+  -v ./my-resources:/zren/resources:z \
+  -v ./secrets:/zren/secrets:z \
+  -p 11011:11011 \
+  --userns keepid:uid=5000,gid=5000 \
+  zhade/zrenderer:latest
+```
+</details>
 
 You will need to provide three directory/files:
 - A configuration file (see the example `zrenderer.docker.conf`)
