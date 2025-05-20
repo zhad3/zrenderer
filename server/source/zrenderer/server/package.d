@@ -146,6 +146,7 @@ bool createOrLoadAccessTokens(const scope string tokenfilename)
 
         AccessToken accessToken = accessTokens.generateAccessToken();
         accessToken.isAdmin = true;
+        accessToken.isValid = true;
         accessToken.description = "Auto-generated Admin Token";
 
         try
