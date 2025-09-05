@@ -192,7 +192,7 @@ struct Config
     @Section("server")
     {
         @Desc("Hostnames of the server. Can contain multiple comma separated values.")
-        string[] hosts = ["localhost"];
+        string[] hosts = [];
 
         @Desc("Port of the server.")
         ushort port = 11011;

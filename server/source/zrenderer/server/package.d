@@ -100,7 +100,8 @@ int main(string[] args)
     }
 
     auto settings = new HTTPServerSettings;
-    settings.bindAddresses = config.hosts;
+    auto bindHosts = config.hosts.length > 0 ? config.hosts : ["localhost"];
+    settings.bindAddresses = bindHosts;
     settings.port = config.port;
     settings.accessLogFormat = "%h - %u %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" \"%{x-token-desc}i\"";
     settings.accessLogger = new MaskedConsoleLogger(settings, settings.accessLogFormat);
