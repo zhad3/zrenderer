@@ -508,20 +508,22 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
 
     sprites ~= bodysprite;
 
-    const headspritepath = resolve.playerHeadSprite(jobid, config.head, config.gender);
     Sprite headsprite;
-
-    try
+    const headspritepath = resolve.playerHeadSprite(jobid, config.head, config.gender);
+    if (headspritepath.length > 0)
     {
-        log(LogLevel.trace, "Loading Head " ~ headspritepath);
-        headsprite = resManager.getSprite(headspritepath, SpriteType.playerhead);
-        headsprite.parent(bodysprite);
-        headsprite.headdir = config.headdir;
-        sprites ~= headsprite;
-    }
-    catch (ResourceException err)
-    {
-        log(LogLevel.warning, err.msg);
+        try
+        {
+            log(LogLevel.trace, "Loading Head " ~ headspritepath);
+            headsprite = resManager.getSprite(headspritepath, SpriteType.playerhead);
+            headsprite.parent(bodysprite);
+            headsprite.headdir = config.headdir;
+            sprites ~= headsprite;
+        }
+        catch (ResourceException err)
+        {
+            log(LogLevel.warning, err.msg);
+        }
     }
 
     if ((config.weapon > 0 || resolver.isMadogear(jobid)) && jobid != NoJobId)
@@ -577,7 +579,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
         }
     }
 
-    if (config.headgear.length > 0)
+    if (config.headgear.length > 0 && headsprite !is null)
     {
         import std.algorithm : min;
 
@@ -700,7 +702,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
         }
     }
 
-    if (config.headPalette > -1)
+    if (config.headPalette > -1 && headsprite !is null)
     {
         auto headpalettepath = resolve.headPalette(jobid, config.head, config.headPalette, config.gender);
         if (headpalettepath.length > 0)
@@ -734,7 +736,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
                 bodysprite.loadImagesOfAction(config.action,
                         bodypalette !is null && bodypalette.usable ? bodypalette.palette : Palette.init);
             }
-            else if (sprite.type == SpriteType.playerhead)
+            else if (headsprite !is null && sprite.type == SpriteType.playerhead)
             {
                 headsprite.loadImagesOfAction(config.action,
                         headpalette !is null && headpalette.usable ? headpalette.palette : Palette.init);
@@ -754,7 +756,7 @@ Sprite[] processPlayer(uint jobid, LogDg log, immutable Config config, Resolver 
                 bodysprite.loadImagesOfFrame(config.action, requestFrame,
                         bodypalette !is null && bodypalette.usable ? bodypalette.palette : Palette.init);
             }
-            else if (sprite.type == SpriteType.playerhead)
+            else if (headsprite !is null && sprite.type == SpriteType.playerhead)
             {
                 headsprite.loadImagesOfFrame(config.action, requestFrame,
                         headpalette !is null && headpalette.usable ? headpalette.palette : Palette.init);

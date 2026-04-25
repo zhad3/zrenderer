@@ -27,7 +27,7 @@ bool isMonster(uint jobid) pure nothrow @safe @nogc
 
 bool isPlayer(uint jobid) pure nothrow @safe @nogc
 {
-    return jobid < 45 || (jobid - 4001 < 316) || jobid == NoJobId;
+    return jobid < 45 || (jobid - 4001 < 1999) || jobid == NoJobId;
 }
 
 bool isDoram(uint jobid) pure nothrow @safe @nogc
@@ -37,20 +37,22 @@ bool isDoram(uint jobid) pure nothrow @safe @nogc
 
 bool isBaby(uint jobid) pure nothrow @safe @nogc
 {
-    if ((jobid >= 4023 && jobid <= 4045) || (jobid >= 4096 && jobid <= 4112) ||
+    return ((jobid >= 4023 && jobid <= 4045) || (jobid >= 4096 && jobid <= 4112) ||
             (jobid >= 4158 && jobid <= 4182) || jobid == 4191 || jobid == 4193 ||
             jobid == 4195 || jobid == 4196 || (jobid >= 4205 && jobid <= 4210) ||
             (jobid >= 4220 && jobid <= 4238) || jobid == 4241 || jobid == 4242 ||
-            jobid == 4244 || jobid == 4247 || jobid == 4248)
-    {
-        return true;
-    }
-    return false;
+            jobid == 4244 || jobid == 4247 || jobid == 4248 || jobid == 4352 ||
+            jobid == 4354);
 }
 
 bool isMadogear(uint jobid) pure nothrow @safe @nogc
 {
     return jobid == 4086 || jobid == 4087 || jobid == 4112 || jobid == 4279;
+}
+
+bool isWereform(uint jobid) pure nothrow @safe @nogc
+{
+    return jobid == 4356 || jobid == 4357;
 }
 
 
@@ -208,6 +210,11 @@ class Resolver
 
     string playerHeadSprite(uint jobid, uint headid, Gender gender)
     {
+        if (isWereform(jobid))
+        {
+            return "";
+        }
+
         string path;
         if (isDoram(jobid))
         {
@@ -272,6 +279,7 @@ class Resolver
         }
 
         bool doram = isDoram(jobid);
+        bool wereform = isWereform(jobid);
 
         if (jobid > 4000)
         {
@@ -285,6 +293,10 @@ class Resolver
                         "body",
                         this._jobNamesPalette[jobid] ~ "_" ~ gender.toString ~ "_" ~ paletteid
                         .to!string);
+            }
+            else if (wereform)
+            {
+                return buildPath("몸", this._jobNamesPalette[jobid] ~ "_" ~ paletteid.to!string);
             }
             else
             {
@@ -340,7 +352,7 @@ class Resolver
 
     string headPalette(uint jobid, uint headid, uint paletteid, Gender gender)
     {
-        if (!isPlayer(jobid))
+        if (!isPlayer(jobid) || isWereform(jobid))
         {
             return "";
         }
@@ -367,7 +379,7 @@ class Resolver
         const isPlayer = isPlayer(jobid);
         const isMercenary = isMercenary(jobid);
 
-        if (!isPlayer && !isMercenary)
+        if ((!isPlayer || isWereform(jobid)) && !isMercenary)
         {
             return "";
         }
@@ -466,7 +478,7 @@ class Resolver
 
     string shieldSprite(uint jobid, uint shieldid, Gender gender)
     {
-        if (!isPlayer(jobid))
+        if (!isPlayer(jobid) || isWereform(jobid))
         {
             return "";
         }
@@ -504,7 +516,7 @@ class Resolver
     string garmentSprite(uint jobid, uint garmentid, Gender gender, bool checkEnglish = false,
             bool useFallback = false)
     {
-        if (!isPlayer(jobid))
+        if (!isPlayer(jobid) || isWereform(jobid))
         {
             return "";
         }
