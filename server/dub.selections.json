@@ -16,7 +16,7 @@
 		"taggedalgebraic": "0.11.22",
 		"vibe-core": "2.2.0",
 		"vibe-d": "0.9.6",
-		"zconfig": "1.2.0",
+		"zconfig": "1.2.1",
 		"zencoding": "1.0.1"
 	}
 }
