@@ -3,7 +3,7 @@
 	"versions": {
 		"libpng-apng": "1.0.5+apng.1.6.37",
 		"luad": {"path":"../LuaD/"},
-		"zconfig": "1.2.1",
+		"zconfig": "1.2.2",
 		"zencoding": "1.0.1"
 	}
 }

@@ -339,9 +339,9 @@ Color alphaBlend(const scope Color dest, const scope Color src) pure nothrow @sa
     else
     {
         auto new_alpha = src.a + (dest.a * (0xFF - src.a) / 0xFF);
-        blended.r = (src.r * src.a / 0xFF + (dest.r * dest.a * (0xFF - src.a) / (0xFF * 0xFF))) * 0xFF / new_alpha;
-        blended.g = (src.g * src.a / 0xFF + (dest.g * dest.a * (0xFF - src.a) / (0xFF * 0xFF))) * 0xFF / new_alpha;
-        blended.b = (src.b * src.a / 0xFF + (dest.b * dest.a * (0xFF - src.a) / (0xFF * 0xFF))) * 0xFF / new_alpha;
+        blended.r = cast(ubyte) ((src.r * src.a / 0xFF + (dest.r * dest.a * (0xFF - src.a) / (0xFF * 0xFF))) * 0xFF / new_alpha);
+        blended.g = cast(ubyte) ((src.g * src.a / 0xFF + (dest.g * dest.a * (0xFF - src.a) / (0xFF * 0xFF))) * 0xFF / new_alpha);
+        blended.b = cast(ubyte) ((src.b * src.a / 0xFF + (dest.b * dest.a * (0xFF - src.a) / (0xFF * 0xFF))) * 0xFF / new_alpha);
         blended.a = cast(ubyte) new_alpha;
     }
 
